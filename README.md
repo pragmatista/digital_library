@@ -1,4 +1,4 @@
-# File System Utilities
+# Digital Library
 Supports common use cases such as directory/file searches 
 
 ## Overview
@@ -16,4 +16,4 @@ media being used. It is intended currently for photos, videos, and audio files b
 in their original folder structure. Duplicates will be ignored if there is a high certainty that the file is an exact 
 match with an existing file in the destination folder. Still doing tests to ensure this is working.
 
-
+![](https://raw.githubusercontent.com/kking423/digital_library/main/readme_resources/media-files-tree-structure.png)
