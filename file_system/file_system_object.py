@@ -21,10 +21,7 @@ def get_file_name(path):
 def get_creation_date(path):
     modified_date = datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
     birth_date = datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc)
-    if birth_date > modified_date:
-        return modified_date
-    else:
-        return birth_date
+    return modified_date if birth_date > modified_date else birth_date
 
 
 def get_modified_date(path):
@@ -36,10 +33,7 @@ def get_opened_date(path):
 
 
 def get_size(path):
-    if os.path.isfile(path):
-        return os.stat(path).st_size
-    else:
-        return 0
+    return os.stat(path).st_size if os.path.isfile(path) else 0
 
 
 def get_size_kb(path):
@@ -67,10 +61,7 @@ def get_size_gb(path):
 
 
 def get_file_extension(path):
-    if os.path.isfile(path):
-        return pathlib.Path(path).suffix.lower()
-    else:
-        return None
+    return pathlib.Path(path).suffix.lower() if os.path.isfile(path) else None
 
 
 def get_mime_type(path):
@@ -81,10 +72,7 @@ def get_mime_type(path):
 
 
 def get_object_type(path):
-    if os.path.isdir(path):
-        return "Folder"
-    else:
-        return "File"
+    return "Folder" if os.path.isdir(path) else "File"
 
 
 def get_is_file(path):
