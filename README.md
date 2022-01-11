@@ -7,9 +7,9 @@ Currently, it's limited to just copying files from one directory to another, but
 content based into a folder hierarchy (YYYY --> YYYY-MM). This could easily be changed in the util.py module.
 
 ## Usage
-Step 1. Run main.py
-Step 2. Enter source directory
-Step 3. Enter destination directory
+* Run main.py
+* Enter source directory
+* Enter destination directory
 
 The duration of the program may depend on several factors such as the number of files and the speed of the disk/storage
 media being used. It is intended currently for photos, videos, and audio files but will copy other types of files
