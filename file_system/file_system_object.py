@@ -4,6 +4,38 @@ import pathlib
 from datetime import datetime, timezone, date
 
 
+class FileSystemObject:
+    def __init__(self, path: str):
+        self.full_path: str = path
+        self.directory: str = get_folder_path(path)
+        self.object_type: str = get_object_type(path)
+        self.is_hidden: bool = get_is_hidden(path)
+        self.is_image: bool = get_is_image(path)
+        self.is_raw_image: bool = get_is_raw_image(path)
+        self.is_video: bool = get_is_video(path)
+        self.is_audio: bool = get_is_audio(path)
+        self.folder: str = get_folder_name(path)
+        self.file: str = get_file_name(path)
+        self.file_extension: str = get_file_extension(path)
+        self.file_mime_type: str = get_mime_type(path)
+        self.file_count: int = 0
+        self.size: int = get_size(path)
+        self.size_kb: float = get_size_kb(path)
+        self.size_mb: float = get_size_mb(path)
+        self.size_gb: float = get_size_gb(path)
+        self.created_dt: datetime = get_creation_date(path)
+        self.created_date_yyyymm: str = get_creation_date_yyyymm(path)
+        self.modified_date_yyyymm: str = get_modified_date_yyyymm(path)
+        self.modified_dt: datetime = get_modified_date(path)
+        self.opened_dt: datetime = get_opened_date(path)
+        self.owner: str = get_owner(path)
+        self.group: str = get_group(path)
+        self.age: int = get_age_in_years(self.modified_dt.date())
+
+    def to_dict(self):
+        return self.__dict__
+
+
 def get_folder_name(path):
     if os.path.isdir(path):
         return os.path.basename(os.path.normpath(path))
@@ -61,7 +93,7 @@ def get_size_gb(path):
 
 
 def get_file_extension(path):
-    return pathlib.Path(path).suffix.lower() if os.path.isfile(path) else None
+    return pathlib.Path(path).suffix if os.path.isfile(path) else None
 
 
 def get_mime_type(path):
@@ -80,11 +112,13 @@ def get_is_file(path):
 
 
 def get_is_image(path):
-    img_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw', '.jpg', '.png', '.gif', '.jpeg']
-    file_extension = get_file_extension(path)
-    mime_type = str(get_mime_type(path)).lower().startswith('image')
-
-    return mime_type or file_extension in img_formats
+    try:
+        img_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw', '.jpg', '.png', '.gif', '.jpeg']
+        file_extension = get_file_extension(path)
+        mime_type = str(get_mime_type(path)).lower().startswith('image')
+        return mime_type or file_extension.lower() in img_formats
+    except AttributeError:
+        return None
 
 
 def get_is_video(path):
@@ -96,10 +130,13 @@ def get_is_audio(path):
 
 
 def get_is_raw_image(path):
-    raw_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw']
-    file_extension = get_file_extension(path)
+    try:
+        raw_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw']
+        file_extension = get_file_extension(path).lower()
 
-    return file_extension in raw_formats
+        return file_extension in raw_formats
+    except AttributeError:
+        return None
 
 
 def get_is_hidden(path):
@@ -131,36 +168,5 @@ def get_creation_date_yyyymm(path):
 def get_modified_date_yyyymm(path):
     return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc).strftime('%Y-%m')
 
-
-class FileSystemObject:
-    def __init__(self, path: str):
-        self.full_path: str = path
-        self.directory: str = get_folder_path(path)
-        self.object_type: str = get_object_type(path)
-        self.is_hidden: bool = get_is_hidden(path)
-        self.is_image: bool = get_is_image(path)
-        self.is_raw_image: bool = get_is_raw_image(path)
-        self.is_video: bool = get_is_video(path)
-        self.is_audio: bool = get_is_audio(path)
-        self.folder: str = get_folder_name(path)
-        self.file: str = get_file_name(path)
-        self.file_extension: str = get_file_extension(path)
-        self.file_mime_type: str = get_mime_type(path)
-        self.file_count: int = 0
-        self.size: int = get_size(path)
-        self.size_kb: float = get_size_kb(path)
-        self.size_mb: float = get_size_mb(path)
-        self.size_gb: float = get_size_gb(path)
-        self.created_dt: datetime = get_creation_date(path)
-        self.created_date_yyyymm: str = get_creation_date_yyyymm(path)
-        self.modified_date_yyyymm: str = get_modified_date_yyyymm(path)
-        self.modified_dt: datetime = get_modified_date(path)
-        self.opened_dt: datetime = get_opened_date(path)
-        self.owner: str = get_owner(path)
-        self.group: str = get_group(path)
-        self.age: int = get_age_in_years(self.modified_dt.date())
-
-    def to_dict(self):
-        return self.__dict__
 
 
