@@ -60,7 +60,6 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/data/db
 
 # Flask stuff:
 instance/
@@ -135,3 +134,4 @@ dmypy.json
 
 # example run-time/output files
 examples/*.xlsx
+!/data/db/digital_library.db
