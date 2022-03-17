@@ -47,7 +47,7 @@ class Search:
             if not self.recursive and root != self.search_path:
                 break  # discontinue loop if we don't need to evaluate any lower
 
-            self._search_folders(root, files)
+            self._search_folders(root, folders)
             self._search_files(root, files)
 
         return self._results

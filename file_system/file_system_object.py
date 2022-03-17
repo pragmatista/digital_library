@@ -30,10 +30,14 @@ class FileSystemObject:
         self.opened_dt: datetime = get_opened_date(path)
         self.owner: str = get_owner(path)
         self.group: str = get_group(path)
-        self.age: int = get_age_in_years(self.modified_dt.date())
+        self.age: int = get_age_in_years(path)
+        self.is_found: bool = get_is_found(path)
 
     def to_dict(self):
-        return self.__dict__
+        try:
+            return self.__dict__
+        except FileNotFoundError:
+            return None
 
 
 def get_folder_name(path):
@@ -42,7 +46,10 @@ def get_folder_name(path):
 
 
 def get_folder_path(path):
-    return os.path.dirname(os.path.abspath(path))
+    try:
+        return os.path.dirname(os.path.abspath(path))
+    except FileNotFoundError:
+        return None
 
 
 def get_file_name(path):
@@ -51,21 +58,33 @@ def get_file_name(path):
 
 
 def get_creation_date(path):
-    modified_date = datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
-    birth_date = datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc)
-    return modified_date if birth_date > modified_date else birth_date
+    try:
+        modified_date = datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
+        birth_date = datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc)
+        return modified_date if birth_date > modified_date else birth_date
+    except FileNotFoundError:
+        return None
 
 
 def get_modified_date(path):
-    return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
+    try:
+        return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
+    except FileNotFoundError:
+        return None
 
 
 def get_opened_date(path):
-    return datetime.fromtimestamp(os.stat(path).st_atime, tz=timezone.utc)
+    try:
+        return datetime.fromtimestamp(os.stat(path).st_atime, tz=timezone.utc)
+    except FileNotFoundError:
+        return None
 
 
 def get_size(path):
-    return os.stat(path).st_size if os.path.isfile(path) else 0
+    try:
+        return os.stat(path).st_size if os.path.isfile(path) else 0
+    except FileNotFoundError:
+        return None
 
 
 def get_size_kb(path):
@@ -108,7 +127,10 @@ def get_object_type(path):
 
 
 def get_is_file(path):
-    return os.path.isfile(path)
+    try:
+        return os.path.isfile(path)
+    except FileNotFoundError:
+        return None
 
 
 def get_is_image(path):
@@ -122,11 +144,17 @@ def get_is_image(path):
 
 
 def get_is_video(path):
-    return str(get_mime_type(path)).lower().startswith('video')
+    try:
+        return str(get_mime_type(path)).lower().startswith('video')
+    except FileNotFoundError:
+        return None
 
 
 def get_is_audio(path):
-    return str(get_mime_type(path)).lower().startswith('audio')
+    try:
+        return str(get_mime_type(path)).lower().startswith('audio')
+    except FileNotFoundError:
+        return None
 
 
 def get_is_raw_image(path):
@@ -140,33 +168,56 @@ def get_is_raw_image(path):
 
 
 def get_is_hidden(path):
-    return os.path.basename(os.path.normpath(path))[0] == '.'
+    try:
+        return os.path.basename(os.path.normpath(path))[0] == '.'
+    except FileNotFoundError:
+        return None
 
 
 def get_owner(path):
-    return pathlib.Path(path).owner()
+    try:
+        return pathlib.Path(path).owner()
+    except FileNotFoundError:
+        return None
 
 
 def get_group(path):
-    return pathlib.Path(path).group()
+    try:
+        return pathlib.Path(path).group()
+    except FileNotFoundError:
+        return None
 
 
-def get_age_in_years(eval_date):
-    days_in_year = 365.2425
-    return int((date.today() - eval_date).days / days_in_year)
+def get_age_in_years(path):
+    try:
+        if eval_date := get_modified_date(path).date():
+            days_in_year = 365.2425
+            return int((date.today() - eval_date).days / days_in_year)
+    except AttributeError:
+        return None
 
 
 def get_creation_date_yyyymm(path):
-    modified_date = datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
-    birth_date = datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc)
-    if birth_date > modified_date:
-        return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc).strftime('%Y-%m')
-    else:
-        return datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc).strftime('%Y-%m')
+    try:
+        modified_date = datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc)
+        birth_date = datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc)
+        if birth_date > modified_date:
+            return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc).strftime('%Y-%m')
+        else:
+            return datetime.fromtimestamp(os.stat(path).st_birthtime, tz=timezone.utc).strftime('%Y-%m')
+    except FileNotFoundError:
+        return None
 
 
 def get_modified_date_yyyymm(path):
-    return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc).strftime('%Y-%m')
+    try:
+        return datetime.fromtimestamp(os.stat(path).st_mtime, tz=timezone.utc).strftime('%Y-%m')
+    except FileNotFoundError:
+        return None
+
+
+def get_is_found(path):
+    return bool(os.path.isfile(path)) or bool(os.path.isdir(path))
 
 
 

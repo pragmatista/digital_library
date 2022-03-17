@@ -1,5 +1,4 @@
-import numpy as np
-import cv2
+
 import os
 import pathlib
 import shutil
@@ -8,10 +7,22 @@ import re
 
 from file_system.file_system_object import FileSystemObject
 from file_system import file_system_object
+from file_system import images
 
 files_found = 0
 files_saved = 0
 files_ignored = 0
+
+
+def backup():
+    print("\n")
+    print("Specify the source path:")
+    src_path = input("> ")
+
+    print("Specify the destination path:")
+    dest_path = input("> ")
+
+    backup_files(src_path, dest_path)
 
 
 def adjust_dest_path(path):
@@ -48,8 +59,8 @@ def derive_destination_path(src_fso: file_system_object, src: str, dest: str, de
     else:
         return dest + '/Documents' \
                + '/' + src_fso.directory.replace(src, '') \
-               + '/' + src_fso.created_date_yyyymm[:4] \
-               + '/' + src_fso.created_date_yyyymm \
+               # + '/' + src_fso.created_date_yyyymm[:4] \
+               # + '/' + src_fso.created_date_yyyymm \
         # src_path = src_fso.directory
         # dest += src_path.replace(src, '')  # copy folder hierarchy as is
 
@@ -139,10 +150,10 @@ def allow_copy(src: FileSystemObject, dest_folder: str):
 
         if src.is_image and src.file_extension == dest.file_extension:
             # Evaluate photos
-            src.image_array = decode_image(src.full_path)
-            dest.image_array = decode_image(dest.full_path)
+            src.image_array = images.decode_image(src.full_path)
+            dest.image_array = images.decode_image(dest.full_path)
 
-            allow = mse(src.image_array, dest.image_array) != 0  # false indicates exact duplicate
+            allow = images.mse(src.image_array, dest.image_array) != 0  # false indicates exact duplicate
 
         elif (
                 # file very likely to be the exact same
@@ -184,34 +195,34 @@ def backup_files(src: str, dest: str, device: str = 'unspecified-device'):
 
     print(f"Task completed. {files_found} files were found. {files_saved} files were copied.")
 
-
-def calculate_compare_score(filepath, compression=100, size=0):
-    # Function that searches the folder for image files, converts them to a matrix;
-    # the sum of the matrix values give us a score that could be used to find
-    # duplicate files (with an exact score match)
-    try:
-        image = decode_image(filepath, compression)
-        return np.sum(np.array(image))
-    except:
-        return size
-
-
-def decode_image(filepath, compression=100):
-    # create images matrix
-    try:
-        img = cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-        if type(img) == np.ndarray:
-            img = img[..., 0:3]
-            img = cv2.resize(img, dsize=(compression, compression), interpolation=cv2.INTER_CUBIC)
-        return img
-    except:
-        return None
-
-
-def mse(imageA, imageB):
-    try:
-        err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-        err /= float(imageA.shape[0] * imageA.shape[1])
-        return err
-    except:
-        return None
+#
+# def calculate_compare_score(filepath, compression=100, size=0):
+#     # Function that searches the folder for image files, converts them to a matrix;
+#     # the sum of the matrix values give us a score that could be used to find
+#     # duplicate files (with an exact score match)
+#     try:
+#         image = decode_image(filepath, compression)
+#         return np.sum(np.array(image))
+#     except:
+#         return size
+#
+#
+# def decode_image(filepath, compression=100):
+#     # create images matrix
+#     try:
+#         img = cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+#         if type(img) == np.ndarray:
+#             img = img[..., 0:3]
+#             img = cv2.resize(img, dsize=(compression, compression), interpolation=cv2.INTER_CUBIC)
+#         return img
+#     except:
+#         return None
+#
+#
+# def mse(imageA, imageB):
+#     try:
+#         err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
+#         err /= float(imageA.shape[0] * imageA.shape[1])
+#         return err
+#     except:
+#         return None

@@ -1,11 +1,8 @@
 import datetime
-from uuid import uuid4
-from typing import List
-
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
+from uuid import uuid4
 from data.modelbase import SqlAlchemyBase
-# from pypi_org.data.releases import Release
 
 
 class Inventory(SqlAlchemyBase):
@@ -13,11 +10,11 @@ class Inventory(SqlAlchemyBase):
 
     inventory_id = sa.Column(sa.String, primary_key=True, default=lambda: str(uuid4()).replace('-', ''))
     library_id = sa.Column(sa.String, sa.ForeignKey('library.library_id'), index=True)
-    parent = orm.relationship("Library", back_populates="inventory")
     inventory_add_date = sa.Column(sa.DateTime, default=datetime.datetime.now, index=True)
     inventory_modified_date = sa.Column(sa.DateTime, default=datetime.datetime.now, index=True)
-    inventory_removed_date = sa.Column(sa.DateTime, default=datetime.datetime.now, index=True)
-    full_path = sa.Column(sa.String, nullable=False)
+    inventory_removed_date = sa.Column(sa.DateTime, index=True)
+    is_missing = sa.Column(sa.BOOLEAN, default=False)
+    full_path = sa.Column(sa.String, unique=True, nullable=False)
     directory = sa.Column(sa.String, nullable=False)
     object_type = sa.Column(sa.String)
     is_hidden = sa.Column(sa.BOOLEAN)
@@ -43,14 +40,12 @@ class Inventory(SqlAlchemyBase):
     group = sa.Column(sa.String)
     age = sa.Column(sa.INT)
     compare_score = sa.Column(sa.BIGINT)
+    compare_score_dt = sa.Column(sa.DATETIME)
 
+    libraries = orm.relationship("Library", back_populates="files")
 
-    # # releases relationship
-    # releases: List[Release] = orm.relation("Release", order_by=[
-    #     Release.major_ver.desc(),
-    #     Release.minor_ver.desc(),
-    #     Release.build_ver.desc(),
-    # ], back_populates='package')
+    def to_dict(self):
+        return self.__dict__
 
     def __repr__(self):
-        return f"Inventory {self.id}"
+        return f"Inventory {self.inventory_id}"
