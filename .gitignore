@@ -134,4 +134,6 @@ dmypy.json
 
 # example run-time/output files
 examples/*.xlsx
-!/data/db/digital_library.db
+!/data/db/*.db
+*.sqlite3
+*.db
