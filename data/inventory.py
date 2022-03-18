@@ -13,6 +13,7 @@ class Inventory(SqlAlchemyBase):
     inventory_add_date = sa.Column(sa.DateTime, default=datetime.datetime.now, index=True)
     inventory_modified_date = sa.Column(sa.DateTime, default=datetime.datetime.now, index=True)
     inventory_removed_date = sa.Column(sa.DateTime, index=True)
+    inventory_removed_reason = sa.Column(sa.String)
     is_missing = sa.Column(sa.BOOLEAN, default=False)
     full_path = sa.Column(sa.String, unique=True, nullable=False)
     directory = sa.Column(sa.String, nullable=False)
@@ -43,6 +44,7 @@ class Inventory(SqlAlchemyBase):
     compare_score_dt = sa.Column(sa.DATETIME)
 
     libraries = orm.relationship("Library", back_populates="files")
+    classification = orm.relationship("Classification", back_populates="inv")
 
     def to_dict(self):
         return self.__dict__

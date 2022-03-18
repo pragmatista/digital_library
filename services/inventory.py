@@ -1,7 +1,8 @@
 import datetime
-
 import data.db_session as db_session
 from data.inventory import Inventory
+from sqlalchemy import desc
+from sqlalchemy.sql import func
 
 
 def refresh_inventory(**kwargs):
@@ -99,6 +100,18 @@ def get_library_inventory(library_id):
     session = db_session.create_session()
     results = session.query(Inventory).filter(Inventory.library_id == library_id).all()
     return [result.to_dict() for result in results]
+
+
+def get_comparable_inventory(library_id):
+    session = db_session.create_session()
+    results = session.query(Inventory)\
+        .filter(Inventory.library_id == library_id, Inventory.compare_score > 0)\
+        .order_by(desc(Inventory.compare_score), Inventory.file)\
+        .all()
+    return [result.to_dict() for result in results]
+
+# s = select([orders.c.user_id, func.count(orders.c.id)]).\
+# ...     group_by(orders.c.user_id).having(func.count(orders.c.id) > 2)
 
 
 def get_inventory_item(inventory_id) -> Inventory:

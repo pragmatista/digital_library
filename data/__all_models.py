@@ -8,3 +8,6 @@ from data import library
 
 # noinspection PyUnresolvedReferences
 from data import inventory
+
+# noinspection PyUnresolvedReferences
+from data import classification
