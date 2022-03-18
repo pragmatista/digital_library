@@ -1,8 +1,9 @@
-__all__ = ['workflow_library', 'workflow_inventory']
+__all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools']
 
 # from workflow import workflow_library
 import workflow.workflow_library
 import workflow.workflow_inventory
+import workflow.workflow_tools
 
 
 def main_menu():
@@ -12,7 +13,7 @@ def main_menu():
     print("#############################################")
     print("[1] Library Management")
     print("[2] Inventory Management")
-    print("[3] File Management")
+    print("[3] Tools")
     print("[X] Exit")
     choice = input("> ")
 
@@ -22,11 +23,10 @@ def main_menu():
         elif int(choice) == 2:
             workflow.workflow_inventory.inventory_menu()
         elif int(choice) == 3:
-            print("Choice 3")
+            workflow.workflow_tools.tools_menu()
     elif choice.isalpha() and choice.lower() == 'x':
         print("Goodbye!")
         exit()
     else:
         print("Selection not valid. Please try again.")
         main_menu()
-
