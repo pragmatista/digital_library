@@ -22,13 +22,17 @@ def add_inventory(**kwargs):
     inv.is_hidden = kwargs.get("is_hidden")
     inv.is_image = kwargs.get("is_image")
     inv.is_raw_image = kwargs.get("is_raw_image")
+    inv.image_contains_text = kwargs.get("image_contains_text")
+    inv.image_contains_faces = kwargs.get("image_contains_faces")
     inv.is_video = kwargs.get("is_video")
     inv.is_audio = kwargs.get("is_audio")
+    inv.is_document = kwargs.get("is_document")
     inv.folder = kwargs.get("folder")
+    inv.folder_count = kwargs.get("folder_count")
+    inv.file_count = kwargs.get("file_count")
     inv.file = kwargs.get("file")
     inv.file_extension = kwargs.get("file_extension")
     inv.file_mime_type = kwargs.get("file_mime_type")
-    inv.file_count = kwargs.get("file_count")
     inv.size = kwargs.get("size")
     inv.size_kb = kwargs.get("size_kb")
     inv.size_mb = kwargs.get("size_mb")
@@ -60,13 +64,17 @@ def update_inventory(inventory_id, **kwargs):
     inv.is_hidden = kwargs.get("is_hidden") or inv.is_hidden
     inv.is_image = kwargs.get("is_image") or inv.is_image
     inv.is_raw_image = kwargs.get("is_raw_image") or inv.is_raw_image
+    inv.image_contains_text = kwargs.get("image_contains_text") or inv.image_contains_text
+    inv.image_contains_faces = kwargs.get("image_contains_faces") or inv.image_contains_faces
     inv.is_video = kwargs.get("is_video") or inv.is_video
     inv.is_audio = kwargs.get("is_audio") or inv.is_audio
+    inv.is_document = kwargs.get("is_document") or inv.is_document
     inv.folder = kwargs.get("folder") or inv.folder
+    inv.folder_count = kwargs.get("folder_count") or inv.folder_count
+    inv.file_count = kwargs.get("file_count") or inv.file_count
     inv.file = kwargs.get("file") or inv.file
     inv.file_extension = kwargs.get("file_extension") or inv.file_extension
     inv.file_mime_type = kwargs.get("file_mime_type") or inv.file_mime_type
-    inv.file_count = kwargs.get("file_count") or inv.file_count
     inv.size = kwargs.get("size") or inv.size
     inv.size_kb = kwargs.get("size_kb") or inv.size_kb
     inv.size_mb = kwargs.get("size_mb") or inv.size_mb
@@ -81,6 +89,7 @@ def update_inventory(inventory_id, **kwargs):
     inv.age = kwargs.get("age") or inv.age
     inv.compare_score = kwargs.get("compare_score") or inv.compare_score
     inv.compare_score_dt = kwargs.get("compare_score_dt") or inv.compare_score_dt
+
 
     session.commit()
 

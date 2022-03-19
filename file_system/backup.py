@@ -194,35 +194,3 @@ def backup_files(src: str, dest: str, device: str = 'unspecified-device'):
                     copy_file(src_fso.full_path, file, dest_folder)
 
     print(f"Task completed. {files_found} files were found. {files_saved} files were copied.")
-
-#
-# def calculate_compare_score(filepath, compression=100, size=0):
-#     # Function that searches the folder for image files, converts them to a matrix;
-#     # the sum of the matrix values give us a score that could be used to find
-#     # duplicate files (with an exact score match)
-#     try:
-#         image = decode_image(filepath, compression)
-#         return np.sum(np.array(image))
-#     except:
-#         return size
-#
-#
-# def decode_image(filepath, compression=100):
-#     # create images matrix
-#     try:
-#         img = cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-#         if type(img) == np.ndarray:
-#             img = img[..., 0:3]
-#             img = cv2.resize(img, dsize=(compression, compression), interpolation=cv2.INTER_CUBIC)
-#         return img
-#     except:
-#         return None
-#
-#
-# def mse(imageA, imageB):
-#     try:
-#         err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-#         err /= float(imageA.shape[0] * imageA.shape[1])
-#         return err
-#     except:
-#         return None

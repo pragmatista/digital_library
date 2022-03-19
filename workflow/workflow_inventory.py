@@ -1,11 +1,9 @@
 import datetime
-
-import services.library
 import workflow
 import pandas as pd
 import numpy as np
+import file_system
 import file_system.images as images
-from file_system.search import Search
 from file_system.file_system_object import FileSystemObject
 from services import inventory, library
 from tabulate import tabulate
@@ -17,7 +15,7 @@ def inventory_menu():
         print("###############################################")
         print("Digital Library Utility - Inventory Management ")
         print("###############################################")
-        print("[1] Add/Update Inventory")
+        print("[1] Add/Update (Refresh) Inventory")
         print("[2] View All Inventory")
         print("[3] View Inventory by Library")
         print("[4] Reconcile (Library) Inventory")
@@ -29,7 +27,7 @@ def inventory_menu():
         if choice.isnumeric() and int(choice) in range(7):
             if int(choice) == 0:
                 workflow.main_menu()
-            elif int(choice) == 1:  # add/update inventory
+            elif int(choice) == 1:  # add/update (refresh) inventory
                 refresh_inventory()
             elif int(choice) == 2:  # view all inventory
                 display_all_inventory()
@@ -48,19 +46,18 @@ def inventory_menu():
 def refresh_inventory():
     library_id = prompt_for_library()
     src = get_library_base_path(library_id)
+    exclusion_list = ['.map', 'venv', '.pyc', '__pycache__', '.DS_Store', 'ignore', '.idea', 'git']
+    restricted_list = []
 
+    data = file_system.search(search_path=src,
+                              recursive=True,
+                              exclusion_list=exclusion_list,
+                              restricted_list=restricted_list)
 
-    search = Search(search_path=src,
-                    recursive=True,
-                    return_all=True,
-                    ignore=['.map', 'venv', '.pyc', '__pycache__', '.DS_Store', 'ignore', '.idea', 'git'],
-                    require=[])
-    data = search.execute()
-
-    for idx, item in enumerate(data['results']):
-        data['results'][idx]['library_id'] = library_id
-        if not data['results'][idx]['is_hidden']:
-            inventory.refresh_inventory(**data['results'][idx])
+    for idx, item in enumerate(data):
+        data[idx]['library_id'] = library_id
+        if not data[idx]['is_hidden']:
+            inventory.refresh_inventory(**data[idx])
     return
 
 
@@ -77,7 +74,6 @@ def get_library_base_path(library_id):
 def update_inventory_compare_scores(inventory_id, full_path):
     fso = FileSystemObject(full_path).to_dict()
     if fso and fso['is_found'] and not fso['is_hidden']:
-
         fso['inventory_removed_date'] = None
         inv = inventory.get_inventory_item(inventory_id)
 
@@ -86,11 +82,8 @@ def update_inventory_compare_scores(inventory_id, full_path):
             fso['compare_score_dt'] = datetime.datetime.now()
 
         inventory.update_inventory(inventory_id, **fso)
-
     else:
-        data = {
-            'inventory_removed_date': datetime.datetime.now()
-        }
+        data = {'inventory_removed_date': datetime.datetime.now()}
         inventory.update_inventory(inventory_id, **data)
 
 
@@ -128,13 +121,9 @@ def reconcile_inventory(calculate_compare_score: bool = False):
 
             fso = FileSystemObject(src_path).to_dict()
             if fso and fso['is_found'] and not fso['is_hidden']:
-                data = {
-                    'inventory_removed_date': None
-                }
+                data = {'inventory_removed_date': None}
             else:
-                data = {
-                    'inventory_removed_date': datetime.datetime.now()
-                }
+                data = {'inventory_removed_date': datetime.datetime.now()}
 
             inventory.update_inventory(inventory_id, **data)
 

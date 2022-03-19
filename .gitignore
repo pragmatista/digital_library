@@ -139,3 +139,5 @@ examples/*.xlsx
 /tmp/*
 tmp/eval/*
 tmp/recycle_bin/*
+tests/samples/*
+

@@ -14,11 +14,13 @@ class FileSystemObject:
         self.is_raw_image: bool = get_is_raw_image(path)
         self.is_video: bool = get_is_video(path)
         self.is_audio: bool = get_is_audio(path)
+        self.is_document: bool = get_is_document(path)
         self.folder: str = get_folder_name(path)
+        self.folder_count: int = 0
+        self.file_count: int = 0
         self.file: str = get_file_name(path)
         self.file_extension: str = get_file_extension(path)
         self.file_mime_type: str = get_mime_type(path)
-        self.file_count: int = 0
         self.size: int = get_size(path)
         self.size_kb: float = get_size_kb(path)
         self.size_mb: float = get_size_mb(path)
@@ -153,6 +155,17 @@ def get_is_video(path):
 def get_is_audio(path):
     try:
         return str(get_mime_type(path)).lower().startswith('audio')
+    except FileNotFoundError:
+        return None
+
+
+def get_is_document(path):
+    try:
+        return get_is_file(path) \
+               and not get_is_audio(path) \
+               and not get_is_video(path) \
+               and not get_is_image(path) \
+               and not get_is_raw_image(path)
     except FileNotFoundError:
         return None
 
