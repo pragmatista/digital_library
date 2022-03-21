@@ -1,4 +1,4 @@
-__all__ = ['file_system_object', 'backup', 'images']
+__all__ = ['file_system_object', 'backup', 'images', 'pdf']
 
 import os
 import subprocess
@@ -116,3 +116,13 @@ def include_in_search(path, restricted_list: list = None, exclusion_list: list =
         return True
 
     return not restricted_list
+
+
+def find_text_in_files():
+    text = input("Text to Search: ")
+    path = input("Folder Path: ")
+    cmd = ['grep', '-irne', text, path]
+    results = subprocess.run(cmd, text=True, stdout=subprocess.PIPE).stdout.splitlines()
+    print(results)
+    for result in results:
+        print(result)

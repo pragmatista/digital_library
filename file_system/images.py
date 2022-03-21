@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import pytesseract as pt
+from PIL import Image
 import sqlite3
 sqlite3.register_adapter(np.int64, lambda val: int(val))
 
@@ -34,3 +36,16 @@ def mse(imageA, imageB):
         return err
     except:
         return None
+
+
+def extract_text(path: str):
+    # Converting image to text
+    # TODO: finish developing method to parse text by extending the fso output
+    img = Image.open(path)
+    extracted = pt.image_to_string(img)
+
+    if extracted.strip():
+        print(path)
+        print(extracted)
+    else:
+        print("No text found within the image file")

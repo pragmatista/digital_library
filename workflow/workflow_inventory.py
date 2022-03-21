@@ -136,11 +136,6 @@ def display_duplicates():
 
 
 def find_duplicates():
-    primary_id = None
-    primary_image_array = None
-    secondary_id = None
-    secondary_image_array = None
-
     library_id = prompt_for_library()
     data = inventory.get_comparable_inventory(library_id)
 
@@ -153,8 +148,12 @@ def find_duplicates():
              'size', 'created_dt', 'modified_dt',
              'compare_score_dt', 'compare_score', 'compare_score_frequency']]
     # df.sort_values(by=['compare_score', 'size'])
-    print(tabulate(df, headers='keys', tablefmt='psql'))
+    # print(tabulate(df, headers='keys', tablefmt='psql'))
 
+    manage_duplicates(df)
+
+
+def manage_duplicates(df: pd.DataFrame):
     distinct_scores = list(df['compare_score'].unique())
     count = len(distinct_scores)
 
@@ -166,10 +165,6 @@ def find_duplicates():
         print(f"Potential Duplicate Group {counter} of {count}")
         print("###############################################")
         print(tabulate(sample.head(100), headers='keys', tablefmt='psql'))
-
-
-def add_duplicate(inventory_id, duplicate_of):
-    print(f"{inventory_id} is a duplicate of: {duplicate_of}")
 
 #
 # def remove_duplicate_inventory(dest_path: str):

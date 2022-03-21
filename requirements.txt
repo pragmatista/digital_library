@@ -4,3 +4,6 @@ numpy
 sqlalchemy
 tabulate
 sqlalchemy_utils
+pytesseract
+Pillow
+pdfplumber
