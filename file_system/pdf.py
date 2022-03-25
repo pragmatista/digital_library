@@ -1,13 +1,9 @@
-import pdfminer.pdfparser
 import pdfplumber
 
 
-def extract_text(path: str):
+def extract_text_from_pdf(path: str):
     try:
-        with pdfplumber.open(r'' + path) as pdf:
-            # total_pages = pdf.pages.count()
-            # print(f"{path} | {total_pages}")
-
+        with pdfplumber.open(f'{path}') as pdf:
             results = []
 
             for idx, page in enumerate(pdf.pages):
@@ -17,10 +13,11 @@ def extract_text(path: str):
                     'page': idx + 1,
                     'text': page.extract_text()
                 }
+
                 results.append(data)
 
             return results
-    except pdfminer.pdfparser.PDFSyntaxError as e:
+    except pdfplumber.pdf.PDFParser as e:
         print(f"{path} | Error: {e}")
 
 

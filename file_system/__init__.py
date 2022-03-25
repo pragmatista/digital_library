@@ -17,20 +17,16 @@ def search(search_path, recursive=True, restricted_list: list = None, exclusion_
                        recursive=recursive,
                        restricted_list=restricted_list,
                        exclusion_list=exclusion_list)
-        for folder in folders:
-            results.append(folder)
-
+        results.extend(iter(folders))
         files = search_files(search_path,
                      recursive=recursive,
                      restricted_list=restricted_list,
                      exclusion_list=exclusion_list)
 
-        for file in files:
-            results.append(file)
-
+        results.extend(iter(files))
     else:  # search is likely a partial name/wildcard search
         search_folder = input("what directory would you like to search? ")
-        wildcard_search = '*' + search_path.lower() + '*'
+        wildcard_search = f'*{search_path.lower()}*'
         cmd = ["find", search_folder, "-iname", wildcard_search]
 
         matches = subprocess.run(cmd, text=True, stdout=subprocess.PIPE).stdout.splitlines()
@@ -109,7 +105,6 @@ def search_files(search_path, recursive=True,
 
 
 def include_in_search(path, restricted_list: list = None, exclusion_list: list = None):
-
     if exclusion_list and any(path.lower().find(criteria.lower()) >= 0 for criteria in exclusion_list):
         return False
     if restricted_list and any(path.lower().find(criteria.lower()) >= 0 for criteria in restricted_list):
@@ -123,6 +118,13 @@ def find_text_in_files():
     path = input("Folder Path: ")
     cmd = ['grep', '-irne', text, path]
     results = subprocess.run(cmd, text=True, stdout=subprocess.PIPE).stdout.splitlines()
-    print(results)
+    output = []
     for result in results:
-        print(result)
+        file = list(result.split(":"))
+        fso = FileSystemObject(file[0]).to_dict()
+        fso['search'] = text
+        fso['text_found'] = file[2]
+        fso['page_num'] = file[1]
+        output.append(fso)
+
+    return output

@@ -38,14 +38,37 @@ def mse(imageA, imageB):
         return None
 
 
-def extract_text(path: str):
+# TODO: finish developing method to parse text by extending the fso output
+def extract_text_from_image(path: str):
     # Converting image to text
-    # TODO: finish developing method to parse text by extending the fso output
     img = Image.open(path)
     extracted = pt.image_to_string(img)
 
-    if extracted.strip():
-        print(path)
-        print(extracted)
-    else:
-        print("No text found within the image file")
+    return extracted if extracted.strip() else None
+
+    # results = []
+    # if extracted.strip():
+    #     data = {
+    #         'search'
+    #     }
+
+
+    # if extracted.strip():
+    #     fso = FileSystemObject(path).to_dict()
+    #     fso['extracted_text'] = extracted.strip()
+    #     return fso
+    # else:
+    #     return None
+
+
+    # output = []
+    # for result in results:
+    #     file = list(result.split(":"))
+    #     fso = FileSystemObject(file[0]).to_dict()
+    #     fso['search'] = text
+    #     fso['text_found'] = file[2]
+    #     fso['page_num'] = file[1]
+    #     output.append(fso)
+    #
+    # return output
+

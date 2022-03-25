@@ -4,6 +4,8 @@ __all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools']
 import workflow.workflow_library
 import workflow.workflow_inventory
 import workflow.workflow_tools
+import pandas as pd
+from tabulate import tabulate
 
 
 def main_menu():
@@ -30,3 +32,8 @@ def main_menu():
     else:
         print("Selection not valid. Please try again.")
         main_menu()
+
+
+def display_results(data):
+    df = pd.DataFrame(data)
+    print(tabulate(df, headers='keys', tablefmt='psql'))
