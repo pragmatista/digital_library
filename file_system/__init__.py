@@ -113,9 +113,7 @@ def include_in_search(path, restricted_list: list = None, exclusion_list: list =
     return not restricted_list
 
 
-def find_text_in_files():
-    text = input("Text to Search: ")
-    path = input("Folder Path: ")
+def find_text_in_files(text, path):
     cmd = ['grep', '-irne', text, path]
     results = subprocess.run(cmd, text=True, stdout=subprocess.PIPE).stdout.splitlines()
     output = []

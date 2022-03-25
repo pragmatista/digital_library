@@ -38,13 +38,15 @@ def mse(imageA, imageB):
         return None
 
 
-# TODO: finish developing method to parse text by extending the fso output
-def extract_text_from_image(path: str):
-    # Converting image to text
+def extract_text_from_image(path: str, text: str = None):
     img = Image.open(path)
     extracted = pt.image_to_string(img)
 
-    return extracted if extracted.strip() else None
+    if extracted.strip() and text.lower() in extracted.lower() or not text:
+        return extracted.strip()
+    return None
+
+    # return extracted if extracted.strip() else None
 
     # results = []
     # if extracted.strip():

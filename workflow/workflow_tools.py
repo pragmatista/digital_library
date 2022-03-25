@@ -32,13 +32,15 @@ def tools_menu():
             elif int(choice) == 5:  # search for text w/in files
                 workflow.workflow_tools.custom_text_search()
             elif int(choice) == 6:  # find text w/in image files
-                workflow.workflow_tools.find_text_within_images()
+                workflow.workflow_tools.extract_image_text(keyword_search=True)
         else:
             print("Selection not valid. Please try again.")
 
 
 def custom_text_search():
-    results = file_system.find_text_in_files()
+    text = input("Text to Search: ")
+    path = input("Folder Path: ")
+    results = file_system.find_text_in_files(text, path)
     workflow.display_results(results)
 
 
@@ -58,11 +60,8 @@ def custom_file_search():
     # return
 
 
-def find_text_within_images():
-    pass
-
-
-def extract_image_text():
+def extract_image_text(keyword_search: bool = False):
+    text = input("Text/Phrase to Search: ") if keyword_search else None
     path = input("Please provide the directory to search: ")
     results = []
 
@@ -70,7 +69,7 @@ def extract_image_text():
 
     for idx, file in enumerate(files):
         if not files[idx]['is_hidden'] and files[idx]['is_image']:
-            file['extracted_text'] = file_system.images.extract_text_from_image(files[idx]['full_path'])
+            file['extracted_text'] = file_system.images.extract_text_from_image(files[idx]['full_path'], text)
             results.append(file) if file['extracted_text'] else None
 
     workflow.display_results(results)
