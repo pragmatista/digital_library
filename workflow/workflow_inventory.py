@@ -1,12 +1,17 @@
 import datetime
+import shutil
+import services.inventory
 import workflow
 import pandas as pd
-import numpy as np
+import os
+# import numpy as np
 import file_system
 import file_system.images as images
 from file_system.file_system_object import FileSystemObject
 from services import inventory, library
 from tabulate import tabulate
+
+TEMP_FOLDER = "tmp/eval"
 
 
 def inventory_menu():
@@ -121,9 +126,15 @@ def reconcile_inventory(calculate_compare_score: bool = False):
 
             fso = FileSystemObject(src_path).to_dict()
             if fso and fso['is_found'] and not fso['is_hidden']:
-                data = {'inventory_removed_date': None}
+                data = {
+                    'inventory_removed_date': None,
+                    'inventory_removed_reason': None,
+                    'is_missing': False
+                        }
             else:
-                data = {'inventory_removed_date': datetime.datetime.now()}
+                data = {'inventory_removed_date': datetime.datetime.now(),
+                        'is_missing': True
+                        }
 
             inventory.update_inventory(inventory_id, **data)
 
@@ -137,20 +148,22 @@ def display_duplicates():
 
 def find_duplicates():
     library_id = prompt_for_library()
-    data = inventory.get_comparable_inventory(library_id)
-
-    df = pd.DataFrame(data)
-    df = df.drop(['_sa_instance_state'], axis=1)
-    df["file"] = df["file"].str.lower()
-    df['compare_score_frequency'] = df.groupby('compare_score')['compare_score'].transform('count')
-    df = df[df.groupby('compare_score')['compare_score'].transform('count') > 1]
-    df = df[['inventory_id', 'library_id', 'directory', 'full_path', 'file',
-             'size', 'created_dt', 'modified_dt',
-             'compare_score_dt', 'compare_score', 'compare_score_frequency']]
-    # df.sort_values(by=['compare_score', 'size'])
-    # print(tabulate(df, headers='keys', tablefmt='psql'))
-
-    manage_duplicates(df)
+    if data := inventory.get_comparable_inventory(library_id):
+        df = pd.DataFrame(data)
+        df = df.drop(['_sa_instance_state'], axis=1)
+        df["file"] = df["file"].str.lower()
+        df['compare_score_frequency'] = df.groupby('compare_score')['compare_score'].transform('count')
+        df = df[df.groupby('compare_score')['compare_score'].transform('count') > 1]
+        df = df[['inventory_id', 'library_id', 'directory', 'full_path', 'file', 'file_extension',
+                 'size', 'created_dt', 'modified_dt',
+                 'compare_score_dt', 'compare_score', 'compare_score_frequency']]
+        # df.sort_values(by=['compare_score', 'size'])
+        # print(tabulate(df, headers='keys', tablefmt='psql'))
+        manage_duplicates(df)
+        move_files_to_recycle_bin(library_id)
+        clear_eval_folder(TEMP_FOLDER)
+    else:
+        print("Process could not proceed. The compare scores need to be updated for this library")
 
 
 def manage_duplicates(df: pd.DataFrame):
@@ -159,13 +172,67 @@ def manage_duplicates(df: pd.DataFrame):
 
     for counter, score in enumerate(distinct_scores, 1):
         sample = df[df["compare_score"] == score]
-        sample = pd.DataFrame(sample, columns=['inventory_id', 'full_path'])
+        sample = pd.DataFrame(sample, columns=['inventory_id', 'file', 'file_extension', 'full_path', 'directory',
+                                               'size', 'created_dt', 'modified_dt'])
         sample.reset_index(drop=True, inplace=True)
         print("###############################################")
         print(f"Potential Duplicate Group {counter} of {count}")
+        print(f"Compare Score: {score}")
         print("###############################################")
-        print(tabulate(sample.head(100), headers='keys', tablefmt='psql'))
 
+        evaluate_duplicates_as_group(sample)
+
+
+            # shutil.copy2(src, "tmp/recycle_bin")
+
+
+def evaluate_duplicates_as_group(sample: pd.DataFrame):
+    clear_eval_folder(path=TEMP_FOLDER)
+    group = []
+    # print(tabulate(sample.head(), headers='keys', tablefmt='psql'))
+
+    for idx, row in sample.iterrows():
+        group.append(row['inventory_id'])
+        inventory_id = row['inventory_id']
+        created = row['created_dt']
+        modified = row['modified_dt']
+        size = row['size']
+        src = row['full_path']
+        dest = f'{TEMP_FOLDER}/' + inventory_id + row['file_extension']
+        print(f"InventoryID: {inventory_id} | File: {row['file']} | Created: {created} | "
+              f"Modified: {modified} | Size: {size}")
+
+        shutil.copy2(src, dest)
+
+    if retain := input("Enter Inventory IDs you wish to keep (separate by comma): ").split(","):
+        for idx, item in enumerate(retain):
+            retain[idx] = item.strip()
+
+        for inv_id in group:
+            if inv_id not in retain:
+                reason = input(f"Enter reason for removal of {inv_id}: ")
+                services.inventory.remove_inventory_item(inv_id.strip(), reason.strip())
+
+
+def move_files_to_recycle_bin(library_id):
+    pass
+
+
+def remove_inventory(group: list, retain: list):
+    for idx, item in enumerate(retain):
+        retain[idx] = item.strip()
+
+    for inv_id in group:
+        if inv_id not in retain:
+            reason = input(f"Enter reason for removal of {inv_id}: ")
+            services.inventory.remove_inventory_item(inv_id.strip(), reason.strip())
+
+
+def clear_eval_folder(path: str):
+    mypath = path
+    for root, dirs, files in os.walk(mypath):
+        for file in files:
+            os.remove(os.path.join(root, file))
 #
 # def remove_duplicate_inventory(dest_path: str):
 #     data = services.read.get_all_duplicates()

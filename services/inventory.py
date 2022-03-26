@@ -5,6 +5,7 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 
+
 def refresh_inventory(**kwargs):
     if db := get_inventory_from_path(kwargs.get("full_path")):
         update_inventory(db.inventory_id, **kwargs)
@@ -51,12 +52,19 @@ def add_inventory(**kwargs):
 
 
 def update_inventory(inventory_id, **kwargs):
+
+
     session = db_session.create_session()
     inv = session.query(Inventory).get(inventory_id)
+
+    v = kwargs.get("is_missing")
+    print(inv.full_path, v)
 
     inv.library_id = kwargs.get("library_id") or inv.library_id
     inv.inventory_modified_date = datetime.datetime.now()
     inv.inventory_removed_date = kwargs.get("inventory_removed_date") or inv.inventory_removed_date
+    inv.inventory_removed_reason = kwargs.get("inventory_removed_reason") or inv.inventory_removed_reason
+    inv.is_missing = kwargs.get("is_missing")
 
     inv.full_path = kwargs.get("full_path") or inv.full_path
     inv.directory = kwargs.get("directory") or inv.directory
@@ -90,7 +98,14 @@ def update_inventory(inventory_id, **kwargs):
     inv.compare_score = kwargs.get("compare_score") or inv.compare_score
     inv.compare_score_dt = kwargs.get("compare_score_dt") or inv.compare_score_dt
 
+    session.commit()
 
+
+def remove_inventory_item(inventory_id, reason: str):
+    session = db_session.create_session()
+    inv = session.query(Inventory).get(inventory_id)
+    inv.inventory_removed_date = datetime.datetime.now(datetime.timezone.utc)
+    inv.inventory_removed_reason = reason
     session.commit()
 
 
@@ -113,10 +128,17 @@ def get_library_inventory(library_id):
 
 def get_comparable_inventory(library_id):
     session = db_session.create_session()
-    results = session.query(Inventory)\
-        .filter(Inventory.library_id == library_id, Inventory.compare_score > 0)\
-        .order_by(desc(Inventory.compare_score), Inventory.file)\
+    results = (
+        session.query(Inventory)
+        .filter(
+            Inventory.library_id == library_id,
+            Inventory.compare_score > 0,
+            Inventory.inventory_removed_date is None,
+        )
+        .order_by(desc(Inventory.compare_score), Inventory.file)
         .all()
+    )
+
     return [result.to_dict() for result in results]
 
 # s = select([orders.c.user_id, func.count(orders.c.id)]).\
