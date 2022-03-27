@@ -4,7 +4,6 @@ import services.inventory
 import workflow
 import pandas as pd
 import os
-# import numpy as np
 import file_system
 import file_system.images as images
 from file_system.file_system_object import FileSystemObject
@@ -12,9 +11,12 @@ from services import inventory, library
 from tabulate import tabulate
 
 TEMP_FOLDER = "tmp/eval"
+RECYCLE_BIN = "tmp/recycle_bin"
 
 
 def inventory_menu():
+    library_id = prompt_for_library()
+
     while True:
         print("\n")
         print("###############################################")
@@ -32,24 +34,33 @@ def inventory_menu():
         if choice.isnumeric() and int(choice) in range(7):
             if int(choice) == 0:
                 workflow.main_menu()
-            elif int(choice) == 1:  # add/update (refresh) inventory
-                refresh_inventory()
+
+            elif int(choice) == 1:  # add/update inventory
+                refresh_inventory(library_id=library_id)
+
             elif int(choice) == 2:  # view all inventory
                 display_all_inventory()
+
             elif int(choice) == 3:  # view inventory by library
                 display_library_inventory()
+
             elif int(choice) == 4:  # reconcile inventory
-                reconcile_inventory(calculate_compare_score=False)
-            elif int(choice) == 5:  # reconcile inventory
-                reconcile_inventory(calculate_compare_score=True)
+                reconcile_inventory(library_id=library_id, calculate_compare_score=False)
+
+            elif int(choice) == 5:  # reconcile inventory with compare score calculation
+                reconcile_inventory(library_id=library_id, calculate_compare_score=True)
+
             elif int(choice) == 6:  # manage duplicate inventory
-                find_duplicates()
+                refresh_inventory(library_id=library_id)
+                get_comparable_inventory(library_id=library_id)
+                move_files_to_recycle_bin(library_id=library_id)
+                clear_eval_folder(TEMP_FOLDER)
+                refresh_inventory(library_id=library_id)
         else:
             print("Selection not valid. Please try again.")
 
 
-def refresh_inventory():
-    library_id = prompt_for_library()
+def refresh_inventory(library_id):
     src = get_library_base_path(library_id)
     exclusion_list = ['.map', 'venv', '.pyc', '__pycache__', '.DS_Store', 'ignore', '.idea', 'git']
     restricted_list = []
@@ -63,7 +74,8 @@ def refresh_inventory():
         data[idx]['library_id'] = library_id
         if not data[idx]['is_hidden']:
             inventory.refresh_inventory(**data[idx])
-    return
+
+    reconcile_inventory(library_id=library_id, calculate_compare_score=False)
 
 
 def prompt_for_library():
@@ -114,9 +126,9 @@ def display_library_inventory():
     print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
 
 
-def reconcile_inventory(calculate_compare_score: bool = False):
+def reconcile_inventory(library_id, calculate_compare_score: bool = False):
     # Purpose: Identify files/folders that no longer exist and update DB accordingly
-    library_id = prompt_for_library()
+    # library_id = prompt_for_library()
     results = inventory.get_library_inventory(library_id)
 
     for idx, item in enumerate(results):
@@ -146,27 +158,28 @@ def display_duplicates():
     pass
 
 
-def find_duplicates():
-    library_id = prompt_for_library()
-    if data := inventory.get_comparable_inventory(library_id):
-        df = pd.DataFrame(data)
-        df = df.drop(['_sa_instance_state'], axis=1)
-        df["file"] = df["file"].str.lower()
-        df['compare_score_frequency'] = df.groupby('compare_score')['compare_score'].transform('count')
-        df = df[df.groupby('compare_score')['compare_score'].transform('count') > 1]
-        df = df[['inventory_id', 'library_id', 'directory', 'full_path', 'file', 'file_extension',
-                 'size', 'created_dt', 'modified_dt',
-                 'compare_score_dt', 'compare_score', 'compare_score_frequency']]
-        # df.sort_values(by=['compare_score', 'size'])
-        # print(tabulate(df, headers='keys', tablefmt='psql'))
-        manage_duplicates(df)
-        move_files_to_recycle_bin(library_id)
-        clear_eval_folder(TEMP_FOLDER)
-    else:
-        print("Process could not proceed. The compare scores need to be updated for this library")
+def get_comparable_inventory(library_id):
+    try:
+        if data := inventory.get_comparable_inventory(library_id):
+            df = pd.DataFrame(data)
+            df = df.drop(['_sa_instance_state'], axis=1)
+            df["file"] = df["file"].str.lower()
+            df['compare_score_frequency'] = df.groupby('compare_score')['compare_score'].transform('count')
+            df = df[df.groupby('compare_score')['compare_score'].transform('count') > 1]
+            df = df[['inventory_id', 'library_id', 'directory', 'full_path', 'file', 'file_extension',
+                     'size', 'created_dt', 'modified_dt',
+                     'compare_score_dt', 'compare_score', 'compare_score_frequency']]
+            # df.sort_values(by=['compare_score', 'size'])
+            # print(tabulate(df, headers='keys', tablefmt='psql'))
+            group_duplicates(df)
+            clear_eval_folder(TEMP_FOLDER)
+        else:
+            print("No duplicates were found.")
+    except:
+        print("An unexpected error has occurred")
 
 
-def manage_duplicates(df: pd.DataFrame):
+def group_duplicates(df: pd.DataFrame):
     distinct_scores = list(df['compare_score'].unique())
     count = len(distinct_scores)
 
@@ -180,13 +193,10 @@ def manage_duplicates(df: pd.DataFrame):
         print(f"Compare Score: {score}")
         print("###############################################")
 
-        evaluate_duplicates_as_group(sample)
+        evaluate_duplicates_by_group(sample)
 
 
-            # shutil.copy2(src, "tmp/recycle_bin")
-
-
-def evaluate_duplicates_as_group(sample: pd.DataFrame):
+def evaluate_duplicates_by_group(sample: pd.DataFrame):
     clear_eval_folder(path=TEMP_FOLDER)
     group = []
     # print(tabulate(sample.head(), headers='keys', tablefmt='psql'))
@@ -215,7 +225,18 @@ def evaluate_duplicates_as_group(sample: pd.DataFrame):
 
 
 def move_files_to_recycle_bin(library_id):
-    pass
+    reconcile_inventory(library_id, calculate_compare_score=False)
+    if data := inventory.get_removed_inventory(library_id):
+        for idx, item in enumerate(data):
+            src = data[idx]['full_path']
+            inventory_id = data[idx]['inventory_id']
+            file_extension = data[idx]['file_extension']
+            dest = f'{RECYCLE_BIN}/' + inventory_id + file_extension
+
+            try:
+                shutil.move(src, dest)
+            except FileNotFoundError:
+                print("A FileNotFound error has occurred.")
 
 
 def remove_inventory(group: list, retain: list):
@@ -233,31 +254,3 @@ def clear_eval_folder(path: str):
     for root, dirs, files in os.walk(mypath):
         for file in files:
             os.remove(os.path.join(root, file))
-#
-# def remove_duplicate_inventory(dest_path: str):
-#     data = services.read.get_all_duplicates()
-#     df = pd.DataFrame(data)
-#     print(tabulate(df.head(100), headers='keys', tablefmt='psql'))
-#
-#     inventory_id = input("Please provide media library id: ")
-#     parent_id = services.read.get_duplicate_id_from_media_id(media_id)
-#
-#     parent = services.read.get_file_details(parent_id)
-#     parent_df = pd.DataFrame(parent)
-#     print(tabulate(parent_df, headers='keys', tablefmt='psql'))
-#     parent_src = parent_df['full_path'].to_list()[0]
-#     parent_dest = str(dest_path + '/' + parent_df['media_id'].to_list()[0] + parent_df['extension'].to_list()[0])
-#
-#     duplicate = services.read.get_file_details(inventory_id)
-#     duplicate_df = pd.DataFrame(duplicate)
-#     print(tabulate(duplicate_df, headers='keys', tablefmt='psql'))
-#     duplicate_src = parent_df['full_path'].to_list()[0]
-#     duplicate_dest = str(
-#         dest_path + '/' + duplicate_df['media_id'].to_list()[0] + duplicate_df['extension'].to_list()[0])
-#
-#     print(f"{parent_src}\n {parent_dest}")
-#
-#     # + '/' + duplicate_df['media_id'] + duplicate_df['extension'])
-#
-#     shutil.copy(parent_src, parent_dest)
-#     shutil.copy(duplicate_src, duplicate_dest)

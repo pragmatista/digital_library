@@ -5,7 +5,6 @@ from sqlalchemy import desc
 from sqlalchemy.sql import func
 
 
-
 def refresh_inventory(**kwargs):
     if db := get_inventory_from_path(kwargs.get("full_path")):
         update_inventory(db.inventory_id, **kwargs)
@@ -52,13 +51,8 @@ def add_inventory(**kwargs):
 
 
 def update_inventory(inventory_id, **kwargs):
-
-
     session = db_session.create_session()
     inv = session.query(Inventory).get(inventory_id)
-
-    v = kwargs.get("is_missing")
-    print(inv.full_path, v)
 
     inv.library_id = kwargs.get("library_id") or inv.library_id
     inv.inventory_modified_date = datetime.datetime.now()
@@ -126,6 +120,17 @@ def get_library_inventory(library_id):
     return [result.to_dict() for result in results]
 
 
+def get_removed_inventory(library_id):
+    session = db_session.create_session()
+    results = session.query(Inventory)\
+        .filter(Inventory.library_id == library_id,
+                Inventory.inventory_removed_date != None,
+                Inventory.inventory_removed_reason != None,
+                Inventory.is_missing == False)\
+        .all()
+    return [result.to_dict() for result in results]
+
+
 def get_comparable_inventory(library_id):
     session = db_session.create_session()
     results = (
@@ -141,33 +146,8 @@ def get_comparable_inventory(library_id):
 
     return [result.to_dict() for result in results]
 
-# s = select([orders.c.user_id, func.count(orders.c.id)]).\
-# ...     group_by(orders.c.user_id).having(func.count(orders.c.id) > 2)
-
 
 def get_inventory_item(inventory_id) -> Inventory:
     session = db_session.create_session()
     return session.query(Inventory).filter(Inventory.inventory_id == inventory_id).first()
 
-#
-# def add_inventory_to_library(data, author_name, book_title, publisher_name):
-#     """Adds a new book to the system"""
-#     # Does the book exist?
-#     first_name, _, last_name = author_name.partition(" ")
-#     if any(
-#         (data.first_name == first_name)
-#         & (data.last_name == last_name)
-#         & (data.title == book_title)
-#         & (data.publisher == publisher_name)
-#     ):
-#         return data
-#     # Add the new book
-#     return data.append(
-#         {
-#             "first_name": first_name,
-#             "last_name": last_name,
-#             "title": book_title,
-#             "publisher": publisher_name,
-#         },
-#         ignore_index=True,
-#     )
