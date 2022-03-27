@@ -28,21 +28,23 @@ def inventory_menu():
         print("[4] Reconcile (Library) Inventory")
         print("[5] Update Inventory Compare Scores")
         print("[6] Manage Duplicate Inventory")
+        print("[7] Restore files from Recycle Bin")
         print("[0] Return to Main Menu")
         choice = input("> ")
 
-        if choice.isnumeric() and int(choice) in range(7):
+        if choice.isnumeric() and int(choice) in range(8):
             if int(choice) == 0:
                 workflow.main_menu()
 
             elif int(choice) == 1:  # add/update inventory
                 refresh_inventory(library_id=library_id)
+                reconcile_inventory(library_id=library_id, calculate_compare_score=False)
 
             elif int(choice) == 2:  # view all inventory
                 display_all_inventory()
 
             elif int(choice) == 3:  # view inventory by library
-                display_library_inventory()
+                display_library_inventory(library_id)
 
             elif int(choice) == 4:  # reconcile inventory
                 reconcile_inventory(library_id=library_id, calculate_compare_score=False)
@@ -52,10 +54,16 @@ def inventory_menu():
 
             elif int(choice) == 6:  # manage duplicate inventory
                 refresh_inventory(library_id=library_id)
+                reconcile_inventory(library_id=library_id, calculate_compare_score=True)
                 get_comparable_inventory(library_id=library_id)
                 move_files_to_recycle_bin(library_id=library_id)
                 clear_eval_folder(TEMP_FOLDER)
                 refresh_inventory(library_id=library_id)
+
+            elif int(choice) == 7:
+                restore_from_recycle_bin()
+                reconcile_inventory(library_id=library_id, calculate_compare_score=False)
+
         else:
             print("Selection not valid. Please try again.")
 
@@ -74,8 +82,6 @@ def refresh_inventory(library_id):
         data[idx]['library_id'] = library_id
         if not data[idx]['is_hidden']:
             inventory.refresh_inventory(**data[idx])
-
-    reconcile_inventory(library_id=library_id, calculate_compare_score=False)
 
 
 def prompt_for_library():
@@ -116,9 +122,7 @@ def display_all_inventory():
     print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
 
 
-def display_library_inventory():
-    library_id = prompt_for_library()
-
+def display_library_inventory(library_id):
     results = inventory.get_library_inventory(library_id)
     df = pd.DataFrame(results)
     df = df.drop(['_sa_instance_state'], axis=1)
@@ -154,8 +158,16 @@ def reconcile_inventory(library_id, calculate_compare_score: bool = False):
                 update_inventory_compare_scores(inventory_id, src_path)
 
 
-def display_duplicates():
-    pass
+def restore_from_recycle_bin():
+    path = RECYCLE_BIN
+    for root, folders, files in os.walk(path, topdown=True):
+        for file in files:
+            recycled_file = os.path.splitext(file)[0]
+            src = os.path.join(root, file)
+            original_file = services.inventory.get_inventory_item(recycled_file)
+            dest = original_file.full_path
+
+            shutil.move(src, dest)
 
 
 def get_comparable_inventory(library_id):

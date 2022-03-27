@@ -19,6 +19,7 @@ def add_inventory(**kwargs):
     inv.full_path = kwargs.get("full_path")
     inv.directory = kwargs.get("directory")
     inv.object_type = kwargs.get("object_type")
+    inv.is_missing = kwargs.get("is_missing")
     inv.is_hidden = kwargs.get("is_hidden")
     inv.is_image = kwargs.get("is_image")
     inv.is_raw_image = kwargs.get("is_raw_image")
@@ -138,7 +139,7 @@ def get_comparable_inventory(library_id):
         .filter(
             Inventory.library_id == library_id,
             Inventory.compare_score > 0,
-            Inventory.inventory_removed_date is None,
+            Inventory.inventory_removed_date == None,
         )
         .order_by(desc(Inventory.compare_score), Inventory.file)
         .all()
