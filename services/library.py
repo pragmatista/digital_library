@@ -8,8 +8,13 @@ def add_library(**kwargs):
     lib.library_name = kwargs.get("library_name")
     lib.description = kwargs.get("description")
     lib.base_path = kwargs.get("base_path")
+    lib.user_defined = kwargs.get("user_defined")
     session.add(lib)
     session.commit()
+
+
+def validate_library(library_id):
+    lib = get_model_library(library_id)
 
 
 def update_library(**kwargs):
@@ -19,6 +24,7 @@ def update_library(**kwargs):
         lib.library_name = kwargs.get("library_name") or lib.library_name
         lib.description = kwargs.get("description") or lib.description
         lib.base_path = kwargs.get("base_path") or lib.base_path
+        lib.user_defined = kwargs.get("user_defined") or lib.user_defined
         session.commit()
 
 
@@ -32,6 +38,21 @@ def get_all_libraries() -> list[Library]:
     return [result.to_dict() for result in results]
 
 
+def get_user_libraries() -> list[Library]:
+    session = db_session.create_session()
+    results = session.query(Library).filter(Library.user_defined == True).all()
+    return [result.to_dict() for result in results]
+
+
 def get_library(library_id) -> Library:
     session = db_session.create_session()
     return session.query(Library).get(library_id)
+
+
+def get_model_library() -> Library:
+    session = db_session.create_session()
+    return session.query(Library).\
+        filter(Library.library_name == 'Object Recognition Training Model',
+               Library.user_defined == False)\
+        .first()
+

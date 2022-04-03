@@ -29,10 +29,11 @@ def inventory_menu():
         print("[5] Update Inventory Compare Scores")
         print("[6] Manage Duplicate Inventory")
         print("[7] Restore files from Recycle Bin")
+        print("[8] Update Inventory Classification")
         print("[0] Return to Main Menu")
         choice = input("> ")
 
-        if choice.isnumeric() and int(choice) in range(8):
+        if choice.isnumeric() and int(choice) in range(10):
             if int(choice) == 0:
                 workflow.main_menu()
 
@@ -64,6 +65,11 @@ def inventory_menu():
                 restore_from_recycle_bin()
                 reconcile_inventory(library_id=library_id, calculate_compare_score=False)
 
+            elif int(choice) == 9:
+                display_library_inventory(library_id)
+                inventory_id = select_inventory_item()
+                update_classification(inventory_id)
+
         else:
             print("Selection not valid. Please try again.")
 
@@ -85,8 +91,12 @@ def refresh_inventory(library_id):
 
 
 def prompt_for_library():
-    workflow.workflow_library.display_libraries()
-    return input("Select Library ID: ")
+    workflow.workflow_library.display_user_libraries()
+    prompt = input("Select Library ID: ")
+    if lib := services.library.get_library(prompt):
+        return lib.library_id
+    print(f"{prompt} is not a valid Library ID")
+    prompt_for_library()
 
 
 def get_library_base_path(library_id):
@@ -123,11 +133,13 @@ def display_all_inventory():
 
 
 def display_library_inventory(library_id):
-    results = inventory.get_library_inventory(library_id)
-    df = pd.DataFrame(results)
-    df = df.drop(['_sa_instance_state'], axis=1)
-    df.sort_values(by=['library_id', 'directory', 'full_path'])
-    print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
+    if results := inventory.get_library_inventory(library_id):
+        df = pd.DataFrame(results)
+        df = df.drop(['_sa_instance_state'], axis=1)
+        df.sort_values(by=['library_id', 'directory', 'full_path'])
+        print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
+    else:
+        return None
 
 
 def reconcile_inventory(library_id, calculate_compare_score: bool = False):
@@ -266,3 +278,30 @@ def clear_eval_folder(path: str):
     for root, dirs, files in os.walk(mypath):
         for file in files:
             os.remove(os.path.join(root, file))
+
+
+def select_inventory_item():
+    return input("Input Inventory ID: ")
+
+
+# def display_inventory_classification(inventory_id):
+#     results = inventory.get_inventory_item(inventory_id)
+#     df = pd.DataFrame(results)
+#     df = df.drop(['_sa_instance_state'], axis=1)
+#     df = df[['inventory_id', 'file', 'tags']]
+#     df.sort_values(by=['file', 'inventory_id', 'tags'])
+#     print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
+
+
+def update_classification(inventory_id):
+    # display_inventory_classification(inventory_id)
+    inv = inventory.get_inventory_item(inventory_id)
+    tags = set(inv.tags['tags']) if inv.tags else None
+    print(tags)
+
+    tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
+    data = {
+        'inventory_id': inventory_id,
+        'tags': tag_values
+    }
+    services.inventory.update_inventory_classification(**data)

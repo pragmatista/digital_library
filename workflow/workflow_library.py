@@ -67,6 +67,17 @@ def remove_library():
     pass
 
 
+def display_user_libraries():
+    try:
+        data = library.get_user_libraries()
+        df = pd.DataFrame(data)
+        df = df.drop(['_sa_instance_state'], axis=1)
+        df = df[['library_id', 'library_name', 'description', 'base_path', 'created_date', 'modified_date', 'removed_date']]
+        print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
+    except KeyError:
+        print("No Libraries Currently Exist")
+
+
 def display_libraries():
     try:
         data = library.get_all_libraries()
@@ -76,3 +87,4 @@ def display_libraries():
         print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
     except KeyError:
         print("No Libraries Currently Exist")
+

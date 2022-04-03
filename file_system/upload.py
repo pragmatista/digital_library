@@ -14,17 +14,6 @@ files_saved = 0
 files_ignored = 0
 
 
-def backup():
-    print("\n")
-    print("Specify the source path:")
-    src_path = input("> ")
-
-    print("Specify the destination path:")
-    dest_path = input("> ")
-
-    backup_files(src_path, dest_path)
-
-
 def adjust_dest_path(path):
     replace('/photos/', '', path)
     replace('/photos/compressed/', '', path)
@@ -33,7 +22,7 @@ def adjust_dest_path(path):
     return path
 
 
-def derive_destination_path(src_fso: file_system_object, src: str, dest: str, device: str):
+def derive_destination_path(src_fso: file_system_object, src: str, dest: str, device: str = 'unspecified-device'):
     if src_fso.is_raw_image:
         return dest + '/Photos' \
                + '/' + src_fso.created_date_yyyymm[:4] \
@@ -100,7 +89,7 @@ def copy_file(src_path: str, file: str, dest_folder: str):
             while os.path.exists(save_to):
                 file_stem = pathlib.Path(save_to).stem
                 file_suffix = file_system_object.get_file_extension(save_to)
-                new_file = file_stem + '-DX' + file_suffix
+                new_file = f'{file_stem}-DX{file_suffix}'
                 save_to = os.path.join(dest_folder, new_file)
                 if not os.path.exists(save_to):
                     break
@@ -120,20 +109,23 @@ def compare_files(src: str, dest: str):
     src_fso = FileSystemObject(src)
     dest_fso = FileSystemObject(dest)
 
-    if (
-        # file very likely to be the exact same
-            src_fso.created_dt == dest_fso.created_dt
-            and src_fso.modified_dt == dest_fso.modified_dt
-            and src_fso.file_extension.lower() == dest_fso.file_extension.lower()
-            and src_fso.file_mime_type.lower() == dest_fso.file_mime_type.lower()
-            and src_fso.size == dest_fso.size):
+    try:
+        if (
+            # file very likely to be the exact same
+                src_fso.created_dt == dest_fso.created_dt
+                and src_fso.modified_dt == dest_fso.modified_dt
+                and src_fso.file_extension.lower() == dest_fso.file_extension.lower()
+                and src_fso.file_mime_type.lower() == dest_fso.file_mime_type.lower()
+                and src_fso.size == dest_fso.size):
 
-        return False
+            return False
 
-    elif src_fso.modified_dt < dest_fso.modified_dt:
-        return True
+        elif src_fso.modified_dt < dest_fso.modified_dt:
+            return True
 
-    else:
+        else:
+            return True
+    except:
         return True
 
 
@@ -174,12 +166,11 @@ def allow_copy(src: FileSystemObject, dest_folder: str):
     return allow
 
 
-def backup_files(src: str, dest: str, device: str = 'unspecified-device'):
+def upload_files(src: str, dest: str, save_option: int = 0):
     global files_found, files_saved
-    dest = adjust_dest_path(dest)
-
     files_found = 0
     files_saved = 0
+    dest_folder = dest
 
     for root, folders, files in os.walk(src, topdown=True):
         for file in files:
@@ -188,9 +179,31 @@ def backup_files(src: str, dest: str, device: str = 'unspecified-device'):
 
             if not src_fso.is_hidden and src_fso.file:
                 print(f"Source File Evaluated: {src_fso.full_path} | {src_fso.is_hidden}")
-                dest_folder = derive_destination_path(src_fso, src, dest, device)
+
+                if not save_option or save_option == 0:
+                    save_option = get_save_option()
+
+                elif save_option.isnumeric() and int(save_option) in range(3):
+                    if save_option == 1:
+                        device = input("Specify device/hardware name (if any, or leave blank): ")
+                        dest = adjust_dest_path(dest)
+                        dest_folder = derive_destination_path(src_fso, src, dest, device.strip())
+                    elif save_option == 2:  # copy folder hierarchy as is
+                        dest += src_fso.full_path.replace(src, '')
+                    elif save_option == 3:  # straight copy of file into dest folder
+                        dest_folder = dest
 
                 if allow_copy(src_fso, dest_folder):
                     copy_file(src_fso.full_path, file, dest_folder)
 
     print(f"Task completed. {files_found} files were found. {files_saved} files were copied.")
+
+
+def get_save_option():
+    print("\n")
+    print("Save Options | Choose 1 of the following:")
+    print("[1] Organize folders by date")
+    print("[2] Retain sub-folder(s) from source path")
+    print("[3] Straight copy into destination folder")
+    return input("> ")
+

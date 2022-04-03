@@ -47,8 +47,10 @@ class Inventory(SqlAlchemyBase):
     compare_score = sa.Column(sa.BIGINT)
     compare_score_dt = sa.Column(sa.DATETIME)
 
+    tags = sa.Column(sa.JSON)
+
     libraries = orm.relationship("Library", back_populates="files")
-    classification = orm.relationship("Classification", back_populates="inv")
+    # classification = orm.relationship("Classification", back_populates="inv")
 
     def to_dict(self):
         return self.__dict__

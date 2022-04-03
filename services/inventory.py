@@ -2,7 +2,11 @@ import datetime
 import data.db_session as db_session
 from data.inventory import Inventory
 from sqlalchemy import desc
-from sqlalchemy.sql import func
+# from sqlalchemy.sql import func
+import json
+
+from sqlalchemy import cast
+from sqlalchemy.dialects.postgresql import JSON
 
 
 def refresh_inventory(**kwargs):
@@ -152,3 +156,27 @@ def get_inventory_item(inventory_id) -> Inventory:
     session = db_session.create_session()
     return session.query(Inventory).filter(Inventory.inventory_id == inventory_id).first()
 
+
+def update_inventory_classification(**kwargs):
+    session = db_session.create_session()
+    inv = session.query(Inventory).get(kwargs.get("inventory_id"))
+    inv.tags = json.dumps(kwargs.get("tags"), indent=4)
+
+    session.commit()
+
+
+def delete_inventory_item(inventory_id):
+    session = db_session.create_session()
+    inv = session.query(Inventory).get(Inventory.inventory_id == inventory_id)
+
+    session.delete(inv)
+
+
+
+# def get_inventory_classification(inventory_id):
+#     # result = Classification.query.filter(cast(Classification.classification2['model'], JSON).contains(["Kyle"])).first()
+#     # # return session.query(Classification).filter(Classification.classification_id == classification_id).first()
+#     # return result
+#     session = db_session.create_session()
+#     results = session.query(Classification).filter(Classification.inventory_id == inventory_id).all()
+#     return [result.to_dict() for result in results]

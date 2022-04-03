@@ -7,8 +7,9 @@ from data.modelbase import SqlAlchemyBase
 class Classification(SqlAlchemyBase):
     __tablename__ = 'classification'
     classification_id = sa.Column(sa.String, primary_key=True, default=lambda: str(uuid4()).replace('-', ''))
-    inventory_id = sa.Column(sa.String, sa.ForeignKey('inventory.inventory_id'), nullable=False, )
-    classification = sa.Column(sa.JSON, nullable=False)
+    inventory_id = sa.Column(sa.String, sa.ForeignKey('inventory.inventory_id'), unique=True, nullable=False )
+    model_classification = sa.Column(sa.String, index=True, nullable=False)
+    tags = sa.Column(sa.JSON)
 
     # Indexes
     # <index name> = sa.Index(<index name>, <col_1>, <col 2>..., unique=True, )

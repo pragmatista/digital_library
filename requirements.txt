@@ -7,3 +7,4 @@ sqlalchemy_utils
 pytesseract
 Pillow
 pdfplumber
+face-recognition

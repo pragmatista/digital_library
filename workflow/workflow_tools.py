@@ -9,7 +9,7 @@ def tools_menu():
         print("#############################################")
         print("Digital Library Utility - Tools ")
         print("#############################################")
-        print("[1] Backup Files")
+        print("[1] Backup/Upload Files")
         print("[2] Extract Text from Images")
         print("[3] Extract Text from PDFs")
         print("[4] Search for Files")
@@ -21,8 +21,8 @@ def tools_menu():
         if choice.isnumeric() and int(choice) in range(7):
             if int(choice) == 0:
                 workflow.main_menu()
-            elif int(choice) == 1:  # backup
-                file_system.backup.backup()
+            elif int(choice) == 1:  # upload
+                workflow.workflow_tools.upload_files()
             elif int(choice) == 2:  # extract text from images
                 workflow.workflow_tools.extract_image_text()
             elif int(choice) == 3:  # extract text from PDFs
@@ -35,6 +35,17 @@ def tools_menu():
                 workflow.workflow_tools.extract_image_text(keyword_search=True)
         else:
             print("Selection not valid. Please try again.")
+
+
+def upload_files():
+    print("\n")
+    print("Specify the source path:")
+    src_path = input("> ")
+
+    print("Specify the destination path:")
+    dest_path = input("> ")
+
+    file_system.upload.upload_files(src=src_path, dest=dest_path)
 
 
 def custom_text_search():

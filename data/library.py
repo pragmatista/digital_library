@@ -18,6 +18,7 @@ class Library(SqlAlchemyBase):
     library_name = sa.Column(sa.String)
     base_path = sa.Column(sa.String)
     description = sa.Column(sa.String)
+    user_defined = sa.Column(sa.BOOLEAN, default=True)
 
     files = orm.relationship("Inventory", back_populates="libraries")
 
