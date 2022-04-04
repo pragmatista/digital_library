@@ -58,7 +58,7 @@ class Inventory(SqlAlchemyBase):
         data = self.__dict__
         del data['_sa_instance_state']
         data['classification_json'] = data['classification']
-        data['classification'] = json.loads(data['classification'])
+        data['classification'] = json.loads(data['classification']) if data['classification'] else None
         return data
         # return self.__dict__
 

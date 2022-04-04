@@ -66,8 +66,7 @@ def inventory_menu():
 
             elif int(choice) == 8:
                 display_library_inventory(library_id)
-                inventory_id = select_inventory_item()
-                update_classification(inventory_id)
+                update_classification()
 
         else:
             print("Selection not valid. Please try again.")
@@ -283,15 +282,16 @@ def select_inventory_item():
     return input("Input Inventory ID: ")
 
 
-def update_classification(inventory_id):
-    # display_inventory_classification(inventory_id)
-    # inv = inventory.get_inventory_item(inventory_id)
-    # classification = json.loads(inv.classification)
-    # print(classification['tags'])
+def update_classification(incl_assignment: bool = False):
+    inventory_id = select_inventory_item()
+    if inv := services.inventory.get_inventory_item(inventory_id=inventory_id).to_dict():
+        print(f"Current Tags: {inv['classification']['tags']}")
 
-    tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
-    data = {
-        'inventory_id': inventory_id,
-        'classification': {'tags': tag_values}
-    }
-    services.inventory.update_inventory_classification(**data)
+        tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
+        data = {
+            'inventory_id': inventory_id,
+            'classification': {'tags': tag_values},
+            'model_assignment': input("Model Assignment Name: ") if incl_assignment else inv['model_assignment']
+        }
+        services.inventory.update_inventory_classification(**data)
+

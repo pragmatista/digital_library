@@ -51,7 +51,7 @@ def model_inventory_workflow(library_id):
 
     if choice.isnumeric() and int(choice) in range(4):
         if int(choice) == 0:
-            workflow.workflow_facial_recognition.model_menu()
+            workflow.workflow_facial_recognition.menu()
 
         elif int(choice) == 1:
             upload_images()
@@ -60,14 +60,12 @@ def model_inventory_workflow(library_id):
         elif int(choice) == 2:
             if services.inventory.get_library_inventory(library_id):
                 workflow.workflow_inventory.display_library_inventory(library_id=library_id)
-                inventory_id = workflow.workflow_inventory.select_inventory_item()
-                workflow.workflow_inventory.update_classification(inventory_id=inventory_id)
+                workflow.workflow_inventory.update_classification(incl_assignment=True)
 
         elif int(choice) == 3:
             if services.inventory.get_library_inventory(library_id):
                 workflow.workflow_inventory.display_library_inventory(library_id=library_id)
-                inventory_id = workflow.workflow_inventory.select_inventory_item()
-                remove_image(inventory_id)
+                remove_image()
 
 
 def upload_images():
@@ -78,8 +76,12 @@ def upload_images():
     file_system.upload.upload_files(src=src_path, dest=MODEL_TRAIN_PATH, save_option=3)
 
 
-def remove_image(inventory_id):
+def remove_image():
+    inventory_id = workflow.workflow_inventory.select_inventory_item()
     inv = services.inventory.get_inventory_item(inventory_id)
     path = inv.full_path
     os.remove(path)
     services.inventory.delete_inventory_item(inventory_id)
+
+
+
