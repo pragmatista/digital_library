@@ -7,7 +7,7 @@ import os
 MODEL_TRAIN_PATH = ''
 
 
-def model_menu():
+def menu():
     global MODEL_TRAIN_PATH
     lib = library.get_model_library()
     MODEL_TRAIN_PATH = lib.base_path
@@ -16,7 +16,7 @@ def model_menu():
     while True:
         print("\n")
         print("###############################################")
-        print("Digital Library Utility - Training Model ")
+        print("Digital Library Utility - Facial Recognition ")
         print("###############################################")
         print("[1] Manage Model Inventory")
         print("[2] Test Model")
@@ -29,7 +29,7 @@ def model_menu():
                 workflow.main_menu()
 
             elif int(choice) == 1:  # manage model inventory
-                workflow.workflow_model.model_inventory_workflow(lib.library_id)
+                workflow.workflow_facial_recognition.model_inventory_workflow(lib.library_id)
 
             elif int(choice) == 2:  # test model
                 workflow.workflow_inventory.display_library_inventory(library_id=lib.library_id)
@@ -51,7 +51,7 @@ def model_inventory_workflow(library_id):
 
     if choice.isnumeric() and int(choice) in range(4):
         if int(choice) == 0:
-            workflow.workflow_model.model_menu()
+            workflow.workflow_facial_recognition.model_menu()
 
         elif int(choice) == 1:
             upload_images()

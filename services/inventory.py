@@ -6,7 +6,8 @@ from sqlalchemy import desc
 import json
 
 from sqlalchemy import cast
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.sqlite import JSON
+from sqlalchemy.sql import or_
 
 
 def refresh_inventory(**kwargs):
@@ -160,20 +161,27 @@ def get_inventory_item(inventory_id) -> Inventory:
 def update_inventory_classification(**kwargs):
     session = db_session.create_session()
     inv = session.query(Inventory).get(kwargs.get("inventory_id"))
-    inv.tags = json.dumps(kwargs.get("tags"), indent=4)
-
+    # inv.classification = json.dumps(kwargs.get("classification"), indent=4)
+    inv.classification = json.dumps(kwargs.get("classification"))
     session.commit()
 
 
 def delete_inventory_item(inventory_id):
     session = db_session.create_session()
     inv = session.query(Inventory).get(Inventory.inventory_id == inventory_id)
-
     session.delete(inv)
 
 
+def get_inventory_by_classification():
+    session = db_session.create_session()
+    # results = session.query(Inventory).filter(Inventory.inventory_id == 'd0be109fb716450cb5c2ec9132d3ac5d').all()
+    results = session.query(Inventory).filter(or_(Inventory.classification.like("%king%"),
+                                              Inventory.classification.like("%scoobz%"))).all()
+        # .filter(Inventory.inventory_id == 'd0be109fb716450cb5c2ec9132d3ac5d').all()
+    return [result.to_dict() for result in results if result] if results else None
 
-# def get_inventory_classification(inventory_id):
+
+# def get_inventory_classification( inventory_id):
 #     # result = Classification.query.filter(cast(Classification.classification2['model'], JSON).contains(["Kyle"])).first()
 #     # # return session.query(Classification).filter(Classification.classification_id == classification_id).first()
 #     # return result

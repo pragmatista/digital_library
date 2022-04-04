@@ -6,9 +6,11 @@ import pandas as pd
 import os
 import file_system
 import file_system.images as images
+import json
 from file_system.file_system_object import FileSystemObject
 from services import inventory, library
 from tabulate import tabulate
+
 
 TEMP_FOLDER = "tmp/eval"
 RECYCLE_BIN = "tmp/recycle_bin"
@@ -22,15 +24,15 @@ def inventory_menu():
         print("###############################################")
         print("Digital Library Utility - Inventory Management ")
         print("###############################################")
+        print("[0] Return to Main Menu")
         print("[1] Add/Update (Refresh) Inventory")
-        print("[2] View All Inventory")
-        print("[3] View Inventory by Library")
+        print("[3] View Inventory")
         print("[4] Reconcile (Library) Inventory")
         print("[5] Update Inventory Compare Scores")
         print("[6] Manage Duplicate Inventory")
         print("[7] Restore files from Recycle Bin")
-        print("[8] Update Inventory Classification")
-        print("[0] Return to Main Menu")
+        print("[8] Classify Inventory")
+
         choice = input("> ")
 
         if choice.isnumeric() and int(choice) in range(10):
@@ -40,9 +42,6 @@ def inventory_menu():
             elif int(choice) == 1:  # add/update inventory
                 refresh_inventory(library_id=library_id)
                 reconcile_inventory(library_id=library_id, calculate_compare_score=False)
-
-            elif int(choice) == 2:  # view all inventory
-                display_all_inventory()
 
             elif int(choice) == 3:  # view inventory by library
                 display_library_inventory(library_id)
@@ -65,7 +64,7 @@ def inventory_menu():
                 restore_from_recycle_bin()
                 reconcile_inventory(library_id=library_id, calculate_compare_score=False)
 
-            elif int(choice) == 9:
+            elif int(choice) == 8:
                 display_library_inventory(library_id)
                 inventory_id = select_inventory_item()
                 update_classification(inventory_id)
@@ -127,7 +126,7 @@ def update_compare_score(full_path, size):
 def display_all_inventory():
     results = inventory.get_all_inventory()
     df = pd.DataFrame(results)
-    df = df.drop(['_sa_instance_state'], axis=1)
+    # df = df.drop(['_sa_instance_state'], axis=1)
     df.sort_values(by=['library_id', 'directory', 'full_path'])
     print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
 
@@ -135,7 +134,7 @@ def display_all_inventory():
 def display_library_inventory(library_id):
     if results := inventory.get_library_inventory(library_id):
         df = pd.DataFrame(results)
-        df = df.drop(['_sa_instance_state'], axis=1)
+        # df = df.drop(['_sa_instance_state'], axis=1)
         df.sort_values(by=['library_id', 'directory', 'full_path'])
         print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
     else:
@@ -186,7 +185,7 @@ def get_comparable_inventory(library_id):
     try:
         if data := inventory.get_comparable_inventory(library_id):
             df = pd.DataFrame(data)
-            df = df.drop(['_sa_instance_state'], axis=1)
+            # df = df.drop(['_sa_instance_state'], axis=1)
             df["file"] = df["file"].str.lower()
             df['compare_score_frequency'] = df.groupby('compare_score')['compare_score'].transform('count')
             df = df[df.groupby('compare_score')['compare_score'].transform('count') > 1]
@@ -284,24 +283,15 @@ def select_inventory_item():
     return input("Input Inventory ID: ")
 
 
-# def display_inventory_classification(inventory_id):
-#     results = inventory.get_inventory_item(inventory_id)
-#     df = pd.DataFrame(results)
-#     df = df.drop(['_sa_instance_state'], axis=1)
-#     df = df[['inventory_id', 'file', 'tags']]
-#     df.sort_values(by=['file', 'inventory_id', 'tags'])
-#     print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
-
-
 def update_classification(inventory_id):
     # display_inventory_classification(inventory_id)
-    inv = inventory.get_inventory_item(inventory_id)
-    tags = set(inv.tags['tags']) if inv.tags else None
-    print(tags)
+    # inv = inventory.get_inventory_item(inventory_id)
+    # classification = json.loads(inv.classification)
+    # print(classification['tags'])
 
     tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
     data = {
         'inventory_id': inventory_id,
-        'tags': tag_values
+        'classification': {'tags': tag_values}
     }
     services.inventory.update_inventory_classification(**data)

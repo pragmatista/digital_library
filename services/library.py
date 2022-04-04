@@ -1,5 +1,6 @@
 import data.db_session as db_session
 from data.library import Library
+import datetime
 
 
 def add_library(**kwargs):
@@ -28,8 +29,11 @@ def update_library(**kwargs):
         session.commit()
 
 
-def remove_library():
-    pass
+def remove_library(library_id):
+    session = db_session.create_session()
+    lib = session.query(Library).get(library_id)
+    lib.removed_date = datetime.datetime.now(datetime.timezone.utc)
+    session.commit()
 
 
 def get_all_libraries() -> list[Library]:

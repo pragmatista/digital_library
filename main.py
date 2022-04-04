@@ -1,11 +1,24 @@
 import os
 import data.db_session as db_session
+import services.inventory
 import workflow
 from services import library
 
+import json
 
 def main():
     setup_db()
+
+    results = services.inventory.get_inventory_by_classification()
+    if results:
+        for result in results:
+            print(result)
+            print(type(result['classification_json']), result['classification_json'])
+            print(result['classification']['tags'])
+            print(result['classification']['tags'][0])
+            # result['classification'] = json.loads(result['classification'])
+            # print(result['classification']['tags'])
+
     pre_populate_db()
     workflow.main_menu()
 

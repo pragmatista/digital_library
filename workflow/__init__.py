@@ -1,9 +1,9 @@
-__all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools', 'workflow_model']
+__all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools', 'workflow_facial_recognition.py']
 
 # from workflow import workflow_library
 import workflow.workflow_library
 import workflow.workflow_inventory
-import workflow.workflow_model
+import workflow.workflow_facial_recognition
 import workflow.workflow_tools
 import pandas as pd
 import file_system
@@ -17,7 +17,7 @@ def main_menu():
     print("#############################################")
     print("[1] Library Management")
     print("[2] Inventory Management")
-    print("[3] Model Inventory Management")
+    print("[3] Facial Recognition")
     print("[4] Tools")
     print("[X] Exit")
     choice = input("> ")
@@ -28,7 +28,7 @@ def main_menu():
         elif int(choice) == 2:
             workflow.workflow_inventory.inventory_menu()
         elif int(choice) == 3:
-            workflow.workflow_model.model_menu()
+            workflow.workflow_facial_recognition.menu()
         elif int(choice) == 4:
             workflow.workflow_tools.tools_menu()
     elif choice.isalpha() and choice.lower() == 'x':

@@ -23,7 +23,10 @@ class Library(SqlAlchemyBase):
     files = orm.relationship("Inventory", back_populates="libraries")
 
     def to_dict(self):
-        return self.__dict__
+        data = self.__dict__
+        del data['_sa_instance_state']
+        return data
+        # return self.__dict__
 
     def __iter__(self):
         yield from self.__dict__.values()

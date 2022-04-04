@@ -10,4 +10,4 @@ from data import library
 from data import inventory
 
 # noinspection PyUnresolvedReferences
-# from data import classification
+from data import metadata

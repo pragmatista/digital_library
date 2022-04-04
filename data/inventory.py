@@ -3,6 +3,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from uuid import uuid4
 from data.modelbase import SqlAlchemyBase
+import json
 
 
 class Inventory(SqlAlchemyBase):
@@ -47,13 +48,19 @@ class Inventory(SqlAlchemyBase):
     compare_score = sa.Column(sa.BIGINT)
     compare_score_dt = sa.Column(sa.DATETIME)
 
-    tags = sa.Column(sa.JSON)
+    model_assignment = sa.Column(sa.String)
+    classification = sa.Column(sa.JSON)
 
     libraries = orm.relationship("Library", back_populates="files")
-    # classification = orm.relationship("Classification", back_populates="inv")
+    meta = orm.relationship("Metadata", back_populates="inv")
 
     def to_dict(self):
-        return self.__dict__
+        data = self.__dict__
+        del data['_sa_instance_state']
+        data['classification_json'] = data['classification']
+        data['classification'] = json.loads(data['classification'])
+        return data
+        # return self.__dict__
 
     def __repr__(self):
         return f"Inventory {self.inventory_id}"
