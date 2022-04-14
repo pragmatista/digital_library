@@ -161,8 +161,8 @@ def get_inventory_item(inventory_id) -> Inventory:
 def update_inventory_classification(**kwargs):
     session = db_session.create_session()
     inv = session.query(Inventory).get(kwargs.get("inventory_id"))
-    # inv.classification = json.dumps(kwargs.get("classification"), indent=4)
-    inv.classification = json.dumps(kwargs.get("classification"))
+    inv.model_assignment = kwargs.get("model_assignment")
+    inv.classification = json.dumps(kwargs.get("classification"), indent=4)
     session.commit()
 
 

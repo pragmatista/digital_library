@@ -10,6 +10,7 @@ import json
 from file_system.file_system_object import FileSystemObject
 from services import inventory, library
 from tabulate import tabulate
+import cv2
 
 
 TEMP_FOLDER = "tmp/eval"
@@ -120,6 +121,10 @@ def update_inventory_compare_scores(inventory_id, full_path):
 
 def update_compare_score(full_path, size):
     return images.calculate_compare_score(full_path, size=size)
+
+
+def get_inventory(library_id):
+    return inventory.get_library_inventory(library_id=library_id)
 
 
 def display_all_inventory():
@@ -282,16 +287,73 @@ def select_inventory_item():
     return input("Input Inventory ID: ")
 
 
-def update_classification(incl_assignment: bool = False):
-    inventory_id = select_inventory_item()
-    if inv := services.inventory.get_inventory_item(inventory_id=inventory_id).to_dict():
-        print(f"Current Tags: {inv['classification']['tags']}")
+def get_inventory_item(inventory_id):
+    return services.inventory.get_inventory_item(inventory_id=inventory_id)
 
-        tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
-        data = {
-            'inventory_id': inventory_id,
-            'classification': {'tags': tag_values},
-            'model_assignment': input("Model Assignment Name: ") if incl_assignment else inv['model_assignment']
-        }
-        services.inventory.update_inventory_classification(**data)
 
+def update_classification(library_id, incl_assignment: bool = False):
+    inv = workflow.workflow_inventory.get_inventory(library_id=library_id)
+
+    try:
+        for file in inv:
+            inventory_id = file['inventory_id']
+
+            if file['is_image']:
+                # inv = services.inventory.get_inventory_item(inventory_id=inventory_id).to_dict()
+                cv2.imshow(file['file'], cv2.imread(file['full_path']))
+                cv2.waitKey(1)
+
+            if file['classification']:
+                print(f"Current Tags: {file['classification']['tags']}")
+
+            tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
+            data = {
+                    'inventory_id': inventory_id,
+                    'classification': {'tags': tag_values},
+                    'model_assignment': input("Model Assignment Name: ") if incl_assignment else file['model_assignment']
+                }
+
+            services.inventory.update_inventory_classification(**data)
+            cv2.destroyAllWindows()
+
+        cv2.destroyAllWindows()
+    except:
+        raise
+
+
+def update_classification_from_model(inventory_id, tags: str):
+    file = workflow.workflow_inventory.get_inventory_item(inventory_id).to_dict()
+    classification = file['classification']['tags'] if file['classification'] else []
+    classification.append(tags)
+    classification = list(set(classification))
+    data = {
+        'inventory_id': inventory_id,
+        'classification': {'tags': classification}
+    }
+    services.inventory.update_inventory_classification(**data)
+
+    # for image in inv:
+    #     inventory_id = image['inventory_id']
+    #
+    #     try:
+    #         if inv := services.inventory.get_inventory_item(inventory_id=inventory_id).to_dict():
+    #             cv2.imshow(image['file'], image['full_path'])
+    #             # cv2.imwrite("tests/samples/ml/test/output.jpg", image)
+    #             cv2.waitKey(0)
+    #             # cv2.destroyAllWindows()
+    #             if inv['classification']:
+    #                 print(f"Current Tags: {inv['classification']['tags']}")
+    #
+    #             tag_values = [item.strip() for item in input("Input Tags (separated by comma): ").split(',')]
+    #             data = {
+    #                 'inventory_id': inventory_id,
+    #                 'classification': {'tags': tag_values},
+    #                 'model_assignment': input("Model Assignment Name: ") if incl_assignment else inv['model_assignment']
+    #             }
+    #             services.inventory.update_inventory_classification(**data)
+    #
+    #             cv2.destroyAllWindows()
+    #     except:
+    #         raise
+
+#5351dd023ef1440393b81ec0acbe2f4a

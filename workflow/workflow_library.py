@@ -33,6 +33,16 @@ def library_menu():
             print("Selection not valid. Please try again.")
 
 
+def select_user_library():
+    display_user_libraries()
+    return input("Select Library ID: ")
+
+
+def select_model_library():
+    display_model_libraries()
+    return input("Select Library ID: ")
+
+
 def add_library():
     data = {
         'library_name': input("Library Name: "),
@@ -44,8 +54,7 @@ def add_library():
 
 
 def update_library():
-    display_user_libraries()
-    library_id = input("Provide the Library ID you wish to update: ")
+    library_id = select_user_library()
     lib = services.library.get_library(library_id)
 
     if lib.library_id:
@@ -63,8 +72,7 @@ def update_library():
 
 
 def remove_library():
-    display_user_libraries()
-    library_id = input("Provide the Library ID you wish to remove: ")
+    library_id = select_user_library()
     lib = services.library.get_library(library_id)
     if lib.library_id:
         services.library.remove_library(lib.library_id)
@@ -76,6 +84,25 @@ def remove_library():
 def display_user_libraries():
     try:
         data = library.get_user_libraries()
+        df = pd.DataFrame(data)
+        # df = df.drop(['_sa_instance_state'], axis=1)
+        df = df[['library_id', 'library_name', 'description', 'base_path', 'created_date', 'modified_date', 'removed_date']]
+        print(tabulate(df.head(500), headers='keys', tablefmt='psql'))
+    except KeyError:
+        print("No Libraries Currently Exist")
+
+
+def get_model_testing_library():
+    return library.get_model_testing_library()
+
+
+def get_model_training_library():
+    return library.get_model_training_library()
+
+
+def display_model_libraries():
+    try:
+        data = library.get_model_libraries()
         df = pd.DataFrame(data)
         # df = df.drop(['_sa_instance_state'], axis=1)
         df = df[['library_id', 'library_name', 'description', 'base_path', 'created_date', 'modified_date', 'removed_date']]

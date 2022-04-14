@@ -17,7 +17,7 @@ def main_menu():
     print("#############################################")
     print("[1] Library Management")
     print("[2] Inventory Management")
-    print("[3] Facial Recognition")
+    print("[3] Facial Recognition Model")
     print("[4] Tools")
     print("[X] Exit")
     choice = input("> ")

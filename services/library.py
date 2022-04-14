@@ -1,6 +1,7 @@
 import data.db_session as db_session
 from data.library import Library
 import datetime
+from sqlalchemy.sql import and_, or_
 
 
 def add_library(**kwargs):
@@ -12,10 +13,6 @@ def add_library(**kwargs):
     lib.user_defined = kwargs.get("user_defined")
     session.add(lib)
     session.commit()
-
-
-def validate_library(library_id):
-    lib = get_model_library(library_id)
 
 
 def update_library(**kwargs):
@@ -53,10 +50,24 @@ def get_library(library_id) -> Library:
     return session.query(Library).get(library_id)
 
 
-def get_model_library() -> Library:
+def get_model_training_library() -> Library:
     session = db_session.create_session()
     return session.query(Library).\
-        filter(Library.library_name == 'Object Recognition Training Model',
+        filter(Library.library_name == 'Facial Recognition Model (Training)',
                Library.user_defined == False)\
         .first()
 
+
+def get_model_testing_library() -> Library:
+    session = db_session.create_session()
+    return session.query(Library).\
+        filter(Library.library_name == 'Facial Recognition Model (Testing)',
+               Library.user_defined == False)\
+        .first()
+
+
+def get_model_libraries():
+    session = db_session.create_session()
+    results = session.query(Library).filter(and_(Library.user_defined == False,
+                                                 Library.library_name.like("%facial%"))).all()
+    return [result.to_dict() for result in results]

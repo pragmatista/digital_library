@@ -1,10 +1,10 @@
-pandas
+pandas==1.4.2
 opencv-python
 numpy
-sqlalchemy
+sqlalchemy==1.4.34
 tabulate
 sqlalchemy_utils
 pytesseract
-Pillow
+Pillow==9.1.0
 pdfplumber
 face-recognition

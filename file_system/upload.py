@@ -183,7 +183,7 @@ def upload_files(src: str, dest: str, save_option: int = 0):
                 if not save_option or save_option == 0:
                     save_option = get_save_option()
 
-                elif save_option.isnumeric() and int(save_option) in range(3):
+                elif save_option in range(3):
                     if save_option == 1:
                         device = input("Specify device/hardware name (if any, or leave blank): ")
                         dest = adjust_dest_path(dest)
