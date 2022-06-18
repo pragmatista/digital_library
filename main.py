@@ -3,8 +3,8 @@ import data.db_session as db_session
 import services.inventory
 import workflow
 from services import library
-
 import json
+
 
 def main():
     setup_db()
@@ -61,6 +61,3 @@ def add_model_testing_library():
 
 if __name__ == '__main__':
     main()
-
-
-

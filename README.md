@@ -1,15 +1,33 @@
 # Digital Library
-Supports common use cases such as directory/file searches 
+A useful everyday tool that is also provides a fun way to learn how to program wiht Python.
 
 ## Overview
-This is a project in the early stages that can be used to manage all of your digital content. 
-Currently, it's limited to just copying files from one directory to another, but it will automatically organize
-content based into a folder hierarchy (YYYY --> YYYY-MM). This could easily be changed in the util.py module.
+This is a project I started as a practical way of learning Python by tackling some common every day challenes.
+Specifically, I found it difficult to manage/backup all the content for everyone in my family. Combined with multiple computers, 
+smart phones, cameras, etc., it has always been challenging to accurately maintain an inventory of all the content
+and ensuring that important files were being backed up or archived regularly while avoiding duplication.
 
-## Usage
+Although the project is currently limited to running within the command-line, there is a fairly organized workflow to 
+manage libraries, inventories, and train the facial recognition model.
+
+## Features
+* Libraries
+  * create custom libraries to manage various types of content
+* Inventories
+  * An inventory is like a collection of files that you associate with a particular library
+  * You can easily add/update/delete from the inventory
+  * You can find duplicates that may exist in your inventory
+* Facial Recognition
+  * This project allows you way to train a model and update your inventory with all the name(s) discovered.
+  * You can apply the model to an entire inventory (although this can be very slow)
+
+
+## 
+
+
+## How to Run
 * Run main.py
-* Enter source directory
-* Enter destination directory
+
 
 The duration of the program may depend on several factors such as the number of files and the speed of the disk/storage
 media being used. It is intended currently for photos, videos, and audio files but will copy other types of files
