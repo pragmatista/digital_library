@@ -28,23 +28,23 @@ def derive_destination_path(src_fso: file_system_object, src: str, dest: str, de
                + '/' + src_fso.created_date_yyyymm[:4] \
                + '/' + src_fso.created_date_yyyymm \
                + '/' + 'Raw' \
-               + '/' + device
+               # + '/' + device
     elif src_fso.is_image:
         return dest + '/Photos' \
                + '/' + src_fso.created_date_yyyymm[:4] \
                + '/' + src_fso.created_date_yyyymm \
                + '/' + 'Compressed' \
-               + '/' + device
+               # + '/' + device
     elif src_fso.is_video:
         return dest + '/Videos' \
                + '/' + src_fso.created_date_yyyymm[:4] \
-               + '/' + src_fso.created_date_yyyymm \
-               + '/' + device
+               + '/' + src_fso.created_date_yyyymm
+               # + '/' + device
     elif src_fso.is_audio:
         return dest + '/Audio' \
                + '/' + src_fso.created_date_yyyymm[:4] \
-               + '/' + src_fso.created_date_yyyymm \
-               + '/' + device
+               + '/' + src_fso.created_date_yyyymm
+               # + '/' + device
     else:
         return dest + '/Documents' \
                + '/' + src_fso.directory.replace(src, '') \
@@ -83,6 +83,7 @@ def copy_file(src_path: str, file: str, dest_folder: str):
 
     # src_dir = os.path.dirname(os.path.abspath(src_path))
     save_to = os.path.join(dest_folder, file)
+    print(f"{save_to}")
 
     try:
         if os.stat(src_path).st_size > 0 and compare_files(src_path, save_to):
@@ -185,9 +186,11 @@ def upload_files(src: str, dest: str, save_option: int = 0):
 
                 elif save_option in range(3):
                     if save_option == 1:
-                        device = input("Specify device/hardware name (if any, or leave blank): ")
+                        # device = input("Specify device/hardware name (if any, or leave blank): ")
                         dest = adjust_dest_path(dest)
-                        dest_folder = derive_destination_path(src_fso, src, dest, device.strip())
+                        dest_folder = derive_destination_path(src_fso, src, dest)
+                        # print(f"Destination Folder:{dest_folder}")
+
                     elif save_option == 2:  # copy folder hierarchy as is
                         dest += src_fso.full_path.replace(src, '')
                     elif save_option == 3:  # straight copy of file into dest folder
@@ -199,11 +202,17 @@ def upload_files(src: str, dest: str, save_option: int = 0):
     print(f"Task completed. {files_found} files were found. {files_saved} files were copied.")
 
 
-def get_save_option():
+def get_save_option() -> int:
     print("\n")
     print("Save Options | Choose 1 of the following:")
     print("[1] Organize folders by date")
     print("[2] Retain sub-folder(s) from source path")
     print("[3] Straight copy into destination folder")
-    return input("> ")
+    response = input("> ")
+    try:
+        return int(response)
+    except :
+        return int(0)
+
+
 

@@ -137,7 +137,7 @@ def get_is_file(path):
 
 def get_is_image(path):
     try:
-        img_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw', '.jpg', '.png', '.gif', '.jpeg']
+        img_formats = ['.raw', '.dng', '.heic', '.sr2', '.orf', '.crw', '.jpg', '.png', '.gif', '.jpeg', '.bmp']
         file_extension = get_file_extension(path)
         mime_type = str(get_mime_type(path)).lower().startswith('image')
         return mime_type or file_extension.lower() in img_formats

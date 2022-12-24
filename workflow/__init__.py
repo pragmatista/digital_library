@@ -1,4 +1,4 @@
-__all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools', 'workflow_facial_recognition.py']
+__all__ = ['workflow_library', 'workflow_inventory', 'workflow_tools', 'workflow_facial_recognition']
 
 # from workflow import workflow_library
 import workflow.workflow_library
